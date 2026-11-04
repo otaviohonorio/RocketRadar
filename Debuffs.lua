@@ -283,9 +283,11 @@ local function Attach(owner, unit)
     end
     if Secret() or InCombatLockdown() then
         pending = true
+        -- (04/11) a key showed nothing on the right: the diary must say whether the build was held back, and why
+        ns.Log.Seen("debuffs:attach", Secret() and "wait-secret" or "wait-combat")
         return
     end
-    if not Ready() then return end
+    if not Ready() then return ns.Log.Seen("debuffs:attach", "no-template") end
     local ok, c = pcall(CreateFrame, "AuraContainer", nil, owner, "CustomAuraContainerTemplate")
     if not ok or not c then return ns.Log.Error("debuffs:create", c) end
     c:SetSize(1, Debuffs.SIZE)
@@ -316,6 +318,7 @@ local function Attach(owner, unit)
         records[owner] = nil
         return ns.Log.Error("debuffs:group", err)
     end
+    ns.Log.Seen("debuffs:attach", "made")
     Apply(rec)
 end
 
@@ -324,13 +327,35 @@ local function UnitOf(frame)
     if type(u) == "string" and not issecretvalue(u) then return u end
 end
 
----Every party frame of the game on screen (the raid's are left alone: a 5-player tool).
+---Every party frame of the game on screen (the raid's are left alone: a 5-player tool): the raid-style ones
+---(CompactPartyFrame) and, since 04/11, the classic ones (PartyFrame, the Edit Mode's default: "Use Raid-Style Party
+---Frames" off), the same two the left side (Party.lua, FrameFor) has always used.
 function Debuffs.Scan()
+    local n, host = 0, "none"
     local party = rawget(_G, "CompactPartyFrame")
     local members = party and rawget(party, "memberUnitFrames")
-    if type(members) == "table" then
-        for _, f in ipairs(members) do Attach(f, UnitOf(f)) end
+    if type(members) == "table" and party:IsVisible() then
+        host = "compact"
+        for _, f in ipairs(members) do
+            local u = UnitOf(f)
+            if u then n = n + 1 end
+            Attach(f, u)
+        end
     end
+    local classic = rawget(_G, "PartyFrame")
+    if classic and classic:IsVisible() then
+        host = host == "none" and "classic" or host .. "+classic"
+        for _, f in ipairs({ classic:GetChildren() }) do
+            if not f:IsForbidden() and f.GetAttribute then
+                local ok, u = pcall(f.GetAttribute, f, "unit")
+                if ok and type(u) == "string" and not issecretvalue(u) then
+                    n = n + 1
+                    Attach(f, u:lower())
+                end
+            end
+        end
+    end
+    ns.Log.Seen("debuffs:host", host .. " " .. n)
 end
 
 ---The options changed: every record takes them now, or at the end of the fight.
@@ -364,6 +389,9 @@ end)
 ns.On("PLAYER_REGEN_ENABLED", function()
     if pending then Debuffs.Refresh() end
 end)
+-- the auras may stay secret past the fight's end (a key): try again when the zone changes and when a key ends
+ns.On("ZONE_CHANGED_NEW_AREA", function() if pending then Debuffs.Refresh() end end)
+ns.On("CHALLENGE_MODE_COMPLETED", function() if pending then Debuffs.Refresh() end end)
 -- a talent or a specialization that frees a teammate from a root or a slow comes or goes: the root/slow group follows
 ns.On("TRAIT_CONFIG_UPDATED", function() Debuffs.Refresh() end)
 ns.On("PLAYER_SPECIALIZATION_CHANGED", function(unit) if unit == "player" then Debuffs.Refresh() end end)
