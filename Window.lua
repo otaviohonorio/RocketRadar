@@ -330,7 +330,7 @@ local function Rows()
             letters = rawget(_G, ns.Debuffs.LETTERS[t]) or "", symbol = ns.Debuffs.SYMBOL[t],
             spell = spells and spells[1] }
     end
-    -- (04/11) a root or a slow without a dispel type, in light blue (Debuffs.lua, group "Move"); not in the Alerts tab
+    -- (04/11) a root or a slow without a dispel type, in light blue (Debuffs.lua, group "Move"; Alerts.lua, its line)
     rows[#rows + 1] = { kind = "Move", move = true, on = "moveDebuffs", color = "dispel.Move", name = ns.Alerts.KindName("Move"),
         what = L["no dispel type"], who = L["free it"], spell = MOVE_SAMPLE }
     rows[#rows + 1] = { kind = "None", on = "bossDebuffs", color = "dispel.None", name = ns.Alerts.KindName("None"),
@@ -526,7 +526,11 @@ end
 local function AlertRow(f, x, y, row)
     local boss = row.kind == "None"
     RowExample(f, x, y, A.icon, row)
-    Cell(f, x, y, A.type, A.alert - A.type - 6, "GameFontHighlight", row.name)
+    local name = Cell(f, x, y, A.type, A.alert - A.type - 6, "GameFontHighlight", row.name)
+    if row.move then   -- German and Russian: two lines, as in the Debuffs tab
+        name:SetWordWrap(true)
+        name:SetMaxLines(2)
+    end
     local alert = CreateFrame("DropdownButton", nil, f, "WowStyle1DropdownTemplate")
     alert:SetPoint("TOPLEFT", f, "TOPLEFT", x + A.alert, y)
     alert:SetWidth(ALERT_W)
@@ -635,7 +639,7 @@ local function AlertsTab(f)
         local v = ns.db.__alertsAll
         ns.db.__alertsAll = nil
         for _, row in ipairs(Rows()) do
-            if not row.move then ns.Alerts.SetMode(row.kind, (CAST_KINDS[row.kind] and v == "group") and "me" or v) end
+            ns.Alerts.SetMode(row.kind, (CAST_KINDS[row.kind] and v == "group") and "me" or v)
         end
         Look()
     end)
@@ -648,9 +652,7 @@ local function AlertsTab(f)
     Header(f, x, y, A.alert, L["Alert"])
     Header(f, x, y, A.sound, rawget(_G, "SOUND") or L["Sound"])
     y = y - 18
-    for _, row in ipairs(Rows()) do
-        if not row.move then y = AlertRow(f, x, y, row) end   -- the root/slow has no alert (yet): its sound needs a list
-    end
+    for _, row in ipairs(Rows()) do y = AlertRow(f, x, y, row) end
     RefreshSamples()
     y = Note(f, x, y - 4, FULL_W, L["The line stays while the debuff lasts. The sound plays only for the season's debuffs the game's tables list. Every alert starts off."])
     return y

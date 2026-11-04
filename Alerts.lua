@@ -25,8 +25,10 @@ ns.Alerts = Alerts
 local UNITS = { "player", "party1", "party2", "party3", "party4" }
 local LINE_W, LINE_H, ICON = 360, 26, 22
 local TOP_Y = -160            -- under the game's own boss banner and objective text
-local DISPEL, BOSS = "RocketRadarAlert", "RocketRadarAlertBoss"
-Alerts.KINDS = { "Magic", "Curse", "Poison", "Disease", "Bleed", "None" }   -- "None": the boss's or role's debuff
+local DISPEL, MOVE, BOSS = "RocketRadarAlert", "RocketRadarAlertMove", "RocketRadarAlertBoss"
+-- "None": the boss's or role's debuff; "Move" (04/11): a root or a slow without a dispel type (Debuffs.lua, "Move")
+Alerts.KINDS = { "Magic", "Curse", "Poison", "Disease", "Bleed", "Move", "None" }
+local SOUND_KINDS = { "Magic", "Curse", "Poison", "Disease", "Bleed", "Move" }   -- the ones with a list of spells
 Alerts.MODES = { "off", "me", "group" }
 
 local holder
@@ -114,7 +116,7 @@ local function Holder()
 end
 
 -- One line: the icon, then "<type> <spell>" and the member's name under the engine's control.
-local function Dress(rec, unit, boss)
+local function Dress(rec, unit, kind)
     return function(button)
         button:EnableMouse(false)
         if button.SetMouseMotionEnabled then button:SetMouseMotionEnabled(false) end
@@ -133,7 +135,7 @@ local function Dress(rec, unit, boss)
         p.who:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
         p.who:SetPoint("LEFT", p.spell, "RIGHT", 6, 0)
         button.rr = p
-        button.rr.boss = boss
+        button.rr.what = kind   -- nil (a dispel type), "move" or "boss"
         rec.buttons[#rec.buttons + 1] = button
     end
 end
@@ -149,9 +151,10 @@ local function Fill(rec, unit)
         p.who:SetText(who)
         pcall(b.SetIcon, b, p.icon)
         pcall(b.SetSpellName, b, p.spell)
-        if p.boss then
-            local r, g, bl = ns.ColorOf("dispel.None")
-            p.kind:SetText(("|cff%s%s|r"):format(Hex(r, g, bl), Alerts.KindName("None")))
+        if p.what == "boss" or p.what == "move" then
+            local k = p.what == "boss" and "None" or "Move"
+            local r, g, bl = ns.ColorOf("dispel." .. k)
+            p.kind:SetText(("|cff%s%s|r"):format(Hex(r, g, bl), Alerts.KindName(k)))
             pcall(b.ClearDispelTypeText, b)
         else
             pcall(b.SetDispelTypeText, b, p.kind, { showWhenHarmful = true, showWhenHelpful = false,
@@ -177,7 +180,11 @@ local function Apply(unit)
     pcall(c.SetAuraGroupFilterString, c, DISPEL, ns.Debuffs.MineFilter())
     pcall(c.SetAuraGroupCandidateFilters, c, DISPEL, { includeDispelTypes = on })
     pcall(c.SetAuraGroupEnabled, c, DISPEL, here and any)
-    pcall(c.SetAuraGroupFilterString, c, BOSS, ns.Debuffs.BossFilter())
+    pcall(c.SetAuraGroupEnabled, c, MOVE, here and Wanted("Move", unit))
+    -- the boss's line leaves a crowd control to the root/slow line while that one is on
+    local bossFilter = (ns.db.dispelMode == "all" and "HARMFUL|!DISPELLABLE" or "HARMFUL|!RAID")
+        .. (Wanted("Move", unit) and "|!CROWD_CONTROL" or "")
+    pcall(c.SetAuraGroupFilterString, c, BOSS, bossFilter)
     pcall(c.SetAuraGroupEnabled, c, BOSS, here and Wanted("None", unit))
     Fill(rec, unit)
     pcall(c.UpdateAllAuras, c)
@@ -200,9 +207,11 @@ local function Build(unit, index)
     local okG, err = pcall(function()
         local layout = { elementWidth = LINE_W, elementHeight = LINE_H }
         c:AddAuraGroup(DISPEL, ns.Debuffs.MineFilter(), { maxFrameCount = 1, candidateFilters = { includeDispelTypes = {} },
-            sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, false), layout = layout })
+            sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, nil), layout = layout })
+        c:AddAuraGroup(MOVE, ns.Debuffs.MOVE_FILTER, { maxFrameCount = 1,
+            sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, "move"), layout = layout })
         c:AddAuraGroup(BOSS, ns.Debuffs.BossFilter(), { maxFrameCount = 1, candidateFilters = { isBossOrRoleAura = true },
-            sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, true), layout = layout })
+            sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, "boss"), layout = layout })
     end)
     if not okG then
         records[unit] = nil
@@ -217,7 +226,7 @@ local function Sounds()
     local trigger = Enum.UnitAuraSoundTrigger and Enum.UnitAuraSoundTrigger.Added
     if trigger == nil or not (C_UnitAuras and C_UnitAuras.AddAuraSound) then return end
     local refused = 0
-    for _, kind in ipairs(ns.DISPEL_TYPES) do
+    for _, kind in ipairs(SOUND_KINDS) do
         local info = ns.AlertSoundInfo(Alerts.Sound(kind))
         for _, unit in ipairs(UNITS) do
             if info and Wanted(kind, unit) and UnitExists(unit) then

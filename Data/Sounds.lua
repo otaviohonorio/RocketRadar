@@ -58,7 +58,7 @@ ns.ALERT_SOUNDS = {
 -- When an alert is turned on, the sound it starts with: the voice of its own type.
 ns.ALERT_SOUND_DEFAULT = {
     Magic = "voice-magic", Curse = "voice-curse", Poison = "voice-poison", Disease = "voice-disease",
-    Bleed = "voice-bleed", None = "voice-debuff",
+    Bleed = "voice-bleed", None = "voice-debuff", Move = "voice-debuff",
 }
 
 ---The sound fields for C_UnitAuras.AddAuraSound (soundFileName or soundFileID) of a key; nil if unknown.
