@@ -251,6 +251,9 @@ local function IsTarget(caster, member)
         local ok, yes = pcall(PlayerIsSpellTarget, caster)
         if ok then
             if ns.Log.enabled then ns.Log.Seen("target.player.secret", issecretvalue(yes)) end
+            -- (04/11) the game answered nil, not false, 938 times in a delve, and SetAlphaFromBoolean refuses nil
+            -- ("bad argument #2"): every gate of that cast failed. nil is "not you".
+            if not issecretvalue(yes) and yes == nil then return false end
             return yes
         end
         if ns.Log.enabled then ns.Log.Seen("target.player", "fail") end

@@ -576,7 +576,7 @@ end
 
 -- What follows the options: the rings' colours, the boxes, and the "what it is / who removes it" of each type by mode.
 local function RefreshSamples()
-    local all = ns.db.dispelMode == "all"
+    local all = ns.Debuffs.Mode() == "all"
     for _, s in ipairs(samples) do
         if s.ring then s.ring:SetVertexColor(ns.ColorOf(s.key)) end
         if s.check then s.check:SetChecked(RowOn(s.row)) end

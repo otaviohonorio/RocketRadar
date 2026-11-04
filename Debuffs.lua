@@ -84,14 +84,32 @@ end
 
 Debuffs.Ready = Ready
 
+---Whether the player knows a spell that removes some dispel type (Data/Dispellers.lua; talents too).
+function Debuffs.CanDispel()
+    for _, list in pairs(ns.DISPELLERS or {}) do
+        for _, e in ipairs(list) do
+            local ok, known = pcall(C_SpellBook.IsSpellKnown, e[2])
+            if ok and known == true then return true end
+        end
+    end
+    return false
+end
+
+---"all" or "mine". (04/11) "What I can remove" for a player who removes NOTHING (a Death Knight, a Warrior...) showed
+---an empty right side in a whole key (the user: "o lado direito não funcionou, não mostrou nada"): for them it is "all".
+function Debuffs.Mode()
+    if ns.db.dispelMode == "all" or not Debuffs.CanDispel() then return "all" end
+    return "mine"
+end
+
 ---"HARMFUL|RAID": what the player can remove; "HARMFUL|DISPELLABLE": every debuff that has a dispel type.
 function Debuffs.MineFilter()
-    return ns.db.dispelMode == "all" and "HARMFUL|DISPELLABLE" or "HARMFUL|RAID"
+    return Debuffs.Mode() == "all" and "HARMFUL|DISPELLABLE" or "HARMFUL|RAID"
 end
 
 ---The boss's or role's debuff that the first group does not already show (nor the root/slow group, while it is on).
 function Debuffs.BossFilter()
-    local f = ns.db.dispelMode == "all" and "HARMFUL|!DISPELLABLE" or "HARMFUL|!RAID"
+    local f = Debuffs.Mode() == "all" and "HARMFUL|!DISPELLABLE" or "HARMFUL|!RAID"
     if Debuffs.MoveOn() then f = f .. "|!CROWD_CONTROL" end
     return f
 end
@@ -112,7 +130,7 @@ end
 ---The root/slow group: on, and in "What I can remove" only for who can free a teammate.
 function Debuffs.MoveOn()
     if ns.db.debuffs == false or ns.db.moveDebuffs == false then return false end
-    return ns.db.dispelMode == "all" or Debuffs.CanFree()
+    return Debuffs.Mode() == "all" or Debuffs.CanFree()
 end
 
 local function TypesOn()
@@ -395,6 +413,8 @@ ns.On("CHALLENGE_MODE_COMPLETED", function() if pending then Debuffs.Refresh() e
 -- a talent or a specialization that frees a teammate from a root or a slow comes or goes: the root/slow group follows
 ns.On("TRAIT_CONFIG_UPDATED", function() Debuffs.Refresh() end)
 ns.On("PLAYER_SPECIALIZATION_CHANGED", function(unit) if unit == "player" then Debuffs.Refresh() end end)
+-- the spells known come in after the login (and change with a talent): what the player removes is read again then
+ns.On("SPELLS_CHANGED", function() if ns.db then Debuffs.Refresh() end end)
 
 function Debuffs.Count()
     local n = 0

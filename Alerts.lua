@@ -182,7 +182,7 @@ local function Apply(unit)
     pcall(c.SetAuraGroupEnabled, c, DISPEL, here and any)
     pcall(c.SetAuraGroupEnabled, c, MOVE, here and Wanted("Move", unit))
     -- the boss's line leaves a crowd control to the root/slow line while that one is on
-    local bossFilter = (ns.db.dispelMode == "all" and "HARMFUL|!DISPELLABLE" or "HARMFUL|!RAID")
+    local bossFilter = (ns.Debuffs.Mode() == "all" and "HARMFUL|!DISPELLABLE" or "HARMFUL|!RAID")
         .. (Wanted("Move", unit) and "|!CROWD_CONTROL" or "")
     pcall(c.SetAuraGroupFilterString, c, BOSS, bossFilter)
     pcall(c.SetAuraGroupEnabled, c, BOSS, here and Wanted("None", unit))
@@ -272,6 +272,8 @@ end
 ns.On("PLAYER_LOGIN", function() Alerts.Refresh() end)
 ns.On("GROUP_ROSTER_UPDATE", function() Alerts.Refresh() end)
 ns.On("PLAYER_REGEN_ENABLED", function() if pending then Alerts.Refresh() end end)
+-- (04/11) what the player removes decides the lines' filter (Debuffs.Mode): read again when the spells change
+ns.On("SPELLS_CHANGED", function() if ns.db then Alerts.Refresh() end end)
 
 function Alerts.__records() return records end
 function Alerts.__sounds() return soundIDs end

@@ -34,7 +34,9 @@ ns.defaults = {
     partyAnim = "fill",
     -- (04/11/2026) the right of the party frame (Debuffs.lua): the debuffs that come off, then the boss's or role's
     debuffs = true,
-    dispelMode = "mine",      -- mine (what I can remove) / all (every debuff that has a dispel type)
+    -- all (every debuff that has a dispel type) / mine (what I can remove). (04/11) "all" by default, the user: "por
+    -- padrão tem que mostrar tudo, o jogador vai ali e desabilita o que não quer ver"
+    dispelMode = "all",
     bossDebuffs = true,
     moveDebuffs = true,       -- (04/11) a root or a slow without a dispel type, in light blue (Debuffs.lua, MOVE)
     alertChannel = "Master",  -- the alerts' sounds (Alerts.lua); alerts = { [kind] = "me"/"group" }: every one off at first
@@ -207,6 +209,11 @@ ns.On("ADDON_LOADED", function(addon)
         if RocketRadarDB[k] == nil then RocketRadarDB[k] = v end
     end
     ns.db = RocketRadarDB
+    -- (04/11) schema 2: everything shows by default; a saved "mine" from the first default goes to "all" once
+    if (tonumber(ns.db.schema) or 1) < 2 then
+        ns.db.dispelMode = "all"
+        ns.db.schema = 2
+    end
     ns.db.minimap = type(ns.db.minimap) == "table" and ns.db.minimap or {}   -- the button's angle (Minimap.lua)
     if ns.Log.Start then ns.Log.Start() end
 end)
