@@ -584,13 +584,26 @@ function Party.Probe()
         return
     end
     probe:SetValue(0.25)
-    C_Timer.After(0.5, function()
-        local ok, h = pcall(tex.GetHeight, tex)
-        radial = ok and type(h) == "number" and not issecretvalue(h) and math.abs(h - 0.25) < 0.02
-        ns.Log.Seen("party:radial", radial and "ok" or ("off " .. tostring(ok and (issecretvalue(h) and "secret" or h))))
-        probe:Hide()
-        Party.ReadAll()
-    end)
+    -- (04/11) every session of the diary read "off 0": the fill had no height yet at 0.5 s. Read again later (the
+    -- layout may not be resolved), and write what each try saw, the bar's own height too, before giving up.
+    local tries = { 0.5, 2, 5 }
+    local function Try(i)
+        C_Timer.After(tries[i] - (tries[i - 1] or 0), function()
+            local ok, h = pcall(tex.GetHeight, tex)
+            local okB, hb = pcall(probe.GetHeight, probe)
+            radial = ok and type(h) == "number" and not issecretvalue(h) and math.abs(h - 0.25) < 0.02
+            ns.Log.Seen("party:radial." .. i, (radial and "ok " or "off ") .. tostring(ok and (issecretvalue(h) and "secret" or h))
+                .. " bar=" .. tostring(okB and hb) .. " shown=" .. tostring(probe:IsVisible()))
+            if radial or i == #tries then
+                ns.Log.Seen("party:radial", radial and "ok" or ("off " .. tostring(ok and (issecretvalue(h) and "secret" or h))))
+                probe:Hide()
+                Party.ReadAll()
+            else
+                Try(i + 1)
+            end
+        end)
+    end
+    Try(1)
 end
 
 function Party.Build()
