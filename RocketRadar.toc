@@ -1,0 +1,51 @@
+## Interface: 120100, 120105
+## Title: |cffff6a00Rocket|r Radar
+## Notes: Adds to the game's own nameplates, without replacing them: what to interrupt, in front of the pile, and who holds each mob.
+## Notes-ptBR: Soma às placas do próprio jogo, sem trocá-las: o que interromper, à frente da pilha, e com quem está cada mob.
+## Author: Otto Rocket (Otávio Honório)
+## Version: 0.1.0
+## X-Curse-Project-ID: 1783002
+#@non-debug@
+# ## SavedVariables: RocketRadarDB
+#@end-non-debug@
+#@debug@
+## SavedVariables: RocketRadarDB, RocketRadarLogDB
+#@end-debug@
+## Category: Rocket Addons
+## IconTexture: Interface\AddOns\RocketRadar\Textures\Logo.png
+## AddonCompartmentFunc: RocketRadar_OnCompartmentClick
+
+Core.lua
+#@debug@
+Log.lua
+DevShots.lua
+#@end-debug@
+Locales\enUS.lua
+Locales\ptBR.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\itIT.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+Data\Sounds.lua
+Donate.lua
+Style.lua
+Data\Spells.lua
+Data\AlertSpells.lua
+Data\Dispellers.lua
+Cards.lua
+Threat.lua
+Party.lua
+Debuffs.lua
+CastTarget.lua
+Alerts.lua
+PartyWindow.lua
+Examples.lua
+Window.lua
+Commands.lua
+Minimap.lua
+OptionsEntry.lua
