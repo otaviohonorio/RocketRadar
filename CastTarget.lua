@@ -366,6 +366,7 @@ local function Update(caster)
     local set = {}
     for _, member in ipairs(onFrame and MEMBERS or {}) do
         local frame = ns.Party and ns.Party.FrameFor(member, true)   -- the group frames only, never the portrait
+        if ns.Log.enabled and UnitExists(member) then ns.Log.Seen("target.frame", frame and "found" or "missing") end
         if frame and UnitExists(member) then
             local o = table.remove(spare) or NewOverlay()
             Place(o, frame)
@@ -420,6 +421,8 @@ local function Update(caster)
     Gate(caster)
     if not ticker then ticker = C_Timer.NewTicker(TICK, CastTarget.Refresh) end
 end
+
+function CastTarget.__live() return live end
 
 function CastTarget.Update(caster)
     local ok, err = pcall(Update, caster)
