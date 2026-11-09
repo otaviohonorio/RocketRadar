@@ -512,20 +512,32 @@ function Party.OffKey(spec, id) return spec .. ":" .. id end
 local function Fill(rec, list, spec)
     local isPlayer = rec.unit == "player"
     local off = Cfg().off
+    -- (05/11) "a ascendência tá aparecendo duas vezes": a talent turns the Enhancement Shaman's Doom Winds button into
+    -- Ascendance (the game's GetOverrideSpell(384352) = 114051, read in the diary), and Ascendance is in the list too.
+    -- One icon per spell shown: the first entry that shows it keeps it.
+    local shown = {}
     for _, entry in ipairs(list) do
         local id, cd, ch = entry[1], entry[2], entry[3]
         local sp = SPELLS[id]
         local wanted = sp and not (sp.own and not isPlayer) and not off[Party.OffKey(spec, id)]
         if wanted and isPlayer and sp.gate then wanted = Known(id) or (sp.show and Known(sp.show)) end
+        local face = wanted and Face(id, sp, spec, isPlayer)
+        if wanted and shown[face] then
+            wanted = false
+            if ns.Log.enabled then ns.Log.Event(("left %s same icon: id=%d shows %d, already there"):format(rec.unit, id, face)) end
+        end
         if wanted then
+            shown[face] = true
             local cell = table.remove(spare.cells) or NewCell()
-            local face = Face(id, sp, spec, isPlayer)
             local t = { id = id, cd = cd, ch = ch, cell = cell, exact = isPlayer, sensors = {},
                 sig = sp.zone and Signature(sp.auras) or nil, others = sp.others, auras = sp.auras }
             -- the caster's own aura (a zone spell reads the caster through the shared zone sensors)
             if not sp.own and not sp.zone and not sp.others then t.own = TakeSensor(rec.unit, sp.auras) end
             cell.spell = face
             cell.icon:SetTexture(C_Spell.GetSpellTexture(face))
+            -- (05/11) "a ascendência tá aparecendo duas vezes": which spell of the list each icon is, and which one the
+            -- game told us to show in its place (GetOverrideSpell), so a doubled icon names its source
+            if isPlayer and ns.Log.enabled then ns.Log.Event(("left player spec=%s id=%d face=%d"):format(tostring(spec), id, face)) end
             Reset(t, Now())
             rec.items[#rec.items + 1] = t
         end
@@ -729,7 +741,12 @@ ns.On("PLAYER_SPECIALIZATION_CHANGED", function(unit)
     end
     Rebuild()
 end)
-ns.On("TRAIT_CONFIG_UPDATED", Rebuild)
+-- (05/11) a talent change changes the player's own row (which spells are known, which icon replaces which), but the
+-- row was only refilled when the member or the spec changed: forget the player's spec so the row is filled again
+ns.On("TRAIT_CONFIG_UPDATED", function()
+    if units.player then units.player.spec = nil end
+    Rebuild()
+end)
 ns.On("PLAYER_REGEN_ENABLED", function()
     if pending then Party.Build() end
     InspectNext()

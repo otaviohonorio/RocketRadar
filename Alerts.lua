@@ -120,6 +120,8 @@ local function Dress(rec, unit, kind)
     return function(button)
         button:EnableMouse(false)
         if button.SetMouseMotionEnabled then button:SetMouseMotionEnabled(false) end
+        -- (05/11, L-069) the game's aura button is born 0x0: it takes the line's size
+        pcall(button.SetSize, button, LINE_W, LINE_H)
         local p = {}
         p.icon = button:CreateTexture(nil, "ARTWORK")
         p.icon:SetSize(ICON, ICON)
@@ -194,12 +196,6 @@ local function Build(unit, index)
     local ok, c = pcall(CreateFrame, "AuraContainer", nil, Holder(), "CustomAuraContainerTemplate")
     if not ok or not c then return ns.Log.Error("alerts:create", c) end
     pcall(c.EnableMouse, c, false)
-    -- stacked: each container under the one before; an empty one is 0 high and takes no room
-    if index == 1 then
-        c:SetPoint("TOP", Holder(), "TOP", 0, 0)
-    else
-        c:SetPoint("TOP", records[UNITS[index - 1]].container, "BOTTOM", 0, 0)
-    end
     local rec = { container = c, buttons = {} }
     records[unit] = rec
     local vertical = AnchorUtil and AnchorUtil.FlowLayoutAxis and AnchorUtil.FlowLayoutAxis.Vertical
@@ -217,6 +213,16 @@ local function Build(unit, index)
         records[unit] = nil
         return ns.Log.Error("alerts:group", err)
     end
+    -- stacked: each container under the one before; an empty one is 0 high and takes no room. (05/11) Anchored only
+    -- now: the game lets a frame anchor to an aura container only once it carries the same forbidden aspect, which
+    -- the container gets with its first group (Blizzard_CustomAuraContainer.lua, AddAuraGroup).
+    local okP, errP
+    if index == 1 then
+        okP, errP = pcall(c.SetPoint, c, "TOP", Holder(), "TOP", 0, 0)
+    else
+        okP, errP = pcall(c.SetPoint, c, "TOP", records[UNITS[index - 1]].container, "BOTTOM", 0, 0)
+    end
+    if not okP then ns.Log.Error("alerts:anchor", errP) end
 end
 
 -- The sounds: every registration dropped and made again with the options in force.

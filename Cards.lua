@@ -27,7 +27,10 @@
 local ADDON, ns = ...
 local L = ns.L
 
-local STRATA = "HIGH"
+-- (05/11) The plates live in the WORLD strata (measured in game: plateLayer=WORLD); the first strata above it is
+-- enough to sit over every plate. It was HIGH, the world map's strata, and the marks floated over the open map
+-- (L-072). BACKGROUND: over every plate, under every window, like the game's own plate.
+local STRATA = "BACKGROUND"
 local ART_OUTLINE = "Interface\\AddOns\\" .. ADDON .. "\\Textures\\outline"
 local ART_MASK = "Interface\\AddOns\\" .. ADDON .. "\\Textures\\outline_mask"
 local ATLAS_CAST = "ui-castingbar-filling-standard"      -- the game's cast bar while it fills

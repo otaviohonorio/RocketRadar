@@ -10,6 +10,10 @@ SlashCmdList["ROCKETRADAR"] = function(msg)
         if ns.CastTarget then ns.CastTarget.Test() end  -- the cast's icon to the right of your party frame
     elseif msg:match("^%s*party") and ns.Party then
         ns.Party.Status()
+    elseif msg:match("^%s*watch") and ns.DevWatchToggle then  -- development only: a screenshot a second in combat
+        ns.DevWatchToggle()
+    elseif msg:match("^%s*probe") and ns.Log.Probe then  -- development only: why the right side stays empty
+        ns.Log.Probe()
     elseif msg:match("^%s*shots") and ns.Log.enabled then  -- development only: the automatic screenshots of the party icons
         ns.db.devShots = not ns.db.devShots
         ns.Print(ns.db.devShots and ns.L["Automatic screenshots: on."] or ns.L["Automatic screenshots: off."])

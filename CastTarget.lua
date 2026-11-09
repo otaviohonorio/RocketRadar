@@ -32,7 +32,7 @@ local CastTarget = {}
 ns.CastTarget = CastTarget
 
 local MEMBERS = { "player", "party1", "party2", "party3", "party4" }
-local TICK = 0.1
+local TICK = 0.05      -- (05/11) was 0.1: the icon came 0.4-1.2 s late, most of it the game; this halves our share
 local E = C_CurveUtil and C_CurveUtil.EvaluateColorValueFromBoolean
 local FONTS = { "GameFontNormal", "ChatFontNormal" }
 local PROBE = 1.5       -- width of the probe: widths within PROBE/2 of each other count as equal
@@ -51,7 +51,12 @@ local ticker
 --------------------------------------------------------------------------------
 local function NewOverlay()
     local size = ns.Debuffs.SIZE
-    local o = CreateFrame("Frame", nil, UIParent)
+    -- (05/11) born with the game's DisableUntrustedLayoutScriptsTemplate (Blizzard_SharedXMLBase/ForbiddenAspectTemplates.xml):
+    -- only such a frame may anchor to the debuffs' aura container (the game refused it 57 times in a delve,
+    -- "Anchoring disallowed as dependent object would inherit forbidden aspects: UntrustedLayoutScriptExecution")
+    local ok, made = pcall(CreateFrame, "Frame", nil, UIParent, "DisableUntrustedLayoutScriptsTemplate")
+    local o = ok and made or CreateFrame("Frame", nil, UIParent)
+    o.canFollow = ok and made ~= nil
     o:SetFrameStrata("HIGH")
     o:SetSize(size, size)
     o.important = CreateFrame("Frame", nil, o)
@@ -100,9 +105,53 @@ local function Draw(o, channel, duration)
     ns.SetPulse(o.motionAnim, anim == "pulse")
 end
 
-local function Place(o, frame)
+--------------------------------------------------------------------------------
+-- (05/11, the user's choice "A") ONE PLACE PER ENEMY. Two enemies casting at the same member drew their icons on the
+-- same spot and only the top one showed (seen in the recordings, a key and a delve). Whom each cast goes to is a
+-- secret, so the lit icons cannot be packed: each enemy casting gets its own place in the row, the same for every
+-- member (a hole where an enemy's cast went to someone else -- the user accepted it over a hidden cast). MAX_SLOTS
+-- places; a fourth enemy shares the last one.
+--------------------------------------------------------------------------------
+local MAX_SLOTS = 3
+local SLOT_GAP = 2
+local slotOf = {}       -- [caster] = 1..MAX_SLOTS
+
+local function TakeSlot(caster)
+    if slotOf[caster] then return slotOf[caster] end
+    local used = {}
+    for _, s in pairs(slotOf) do used[s] = true end
+    local s = MAX_SLOTS
+    for i = 1, MAX_SLOTS do
+        if not used[i] then s = i break end
+    end
+    slotOf[caster] = s
+    return s
+end
+
+local function FreeSlot(caster) slotOf[caster] = nil end
+CastTarget.MAX_SLOTS = MAX_SLOTS
+
+local LEVEL_OVER_FRAME = 25   -- above the debuffs' container (frame + 10) and its buttons' top layer (+ 6 more)
+
+local function Place(o, frame, slot)
+    -- (05/11) the icon lived in the HIGH strata, so with the world map open (HIGH too, game's Blizzard_WorldMap.xml)
+    -- the party frames went under the map and our icons floated over it (video 17:41:22). The icon now shares the
+    -- strata of the frame it belongs to: whatever covers the frame covers the icon.
+    local okS, strata = pcall(frame.GetFrameStrata, frame)
+    local okL, level = pcall(frame.GetFrameLevel, frame)
+    if okS and type(strata) == "string" then o:SetFrameStrata(strata) end
+    if okL and type(level) == "number" then o:SetFrameLevel(level + LEVEL_OVER_FRAME) end
     o:ClearAllPoints()
-    o:SetPoint("LEFT", frame, "RIGHT", ns.Debuffs.SIDE, 0)
+    local step = ((slot or 1) - 1) * (ns.Debuffs.SIZE + SLOT_GAP)
+    local to, gap = ns.Debuffs.CastAnchor(frame)   -- after the debuffs (05/11), so no hole is left for it
+    if to ~= frame and o.canFollow then
+        local ok, err = pcall(o.SetPoint, o, "LEFT", to, "RIGHT", gap + step, 0)
+        if ok then return end
+        ns.Log.Error("target:follow", err)
+        o:ClearAllPoints()
+    end
+    -- the debuffs off, or the game refused the anchor: right of the frame, as before (never an error that stops the cast)
+    o:SetPoint("LEFT", frame, "RIGHT", ns.Debuffs.SIDE + step, 0)
 end
 
 --------------------------------------------------------------------------------
@@ -142,7 +191,10 @@ end
 -- secrets are written as "secret", never read -- so the next test tells which suspect it was.
 local function Diary(caster, what)
     if not ns.Log.enabled then return end
-    ns.Log.Event(("target %s %s %s"):format(caster, what, date("%H:%M:%S")))
+    -- (05/11) the game's clock to the millisecond and whether the camera was being turned with the mouse (the cursor
+    -- hidden: the teammates' width test reads the cursor), to split the icon's delay between the game and us
+    ns.Log.Event(("target %s %s t=%.3f ml=%s %s"):format(caster, what, GetTime(),
+        IsMouselooking and tostring(IsMouselooking()) or "?", date("%H:%M:%S")))
 end
 
 -- Plain width of a plain name in this ruler's font.
@@ -222,7 +274,8 @@ local function NewAlert()
     return a
 end
 
-local function Release(caster)
+local function Release(caster, keepSlot)
+    if not keepSlot then FreeSlot(caster) end
     if alerts[caster] then
         alerts[caster]:Hide()
         spareAlerts[#spareAlerts + 1] = alerts[caster]
@@ -275,6 +328,7 @@ local function Gate(caster)
             if ok and alerts[caster] then ok, err = pcall(alerts[caster].SetAlphaFromBoolean, alerts[caster], IsTarget(caster, member), 1, 0) end
         else
             ok, err = pcall(o.SetAlpha, o, Match(caster, member))
+            if ns.Log.enabled and IsMouselooking then ns.Log.Seen("target.mouselook", IsMouselooking()) end
         end
         if not ok then ns.Log.Error("target:gate", err) end
     end
@@ -336,17 +390,46 @@ end
 --------------------------------------------------------------------------------
 -- A cast started, changed or ended on a plate
 --------------------------------------------------------------------------------
-local function Update(caster)
-    Release(caster)
+-- (05/11) "metade das vezes não funcionou" on a boss channelling at the companion: 6 of 16 casts ended in
+-- "no-target". Every event of the SAME cast (a channel's update, interruptible or not) used to wipe the icon and ask
+-- again, so one "no target" mid-channel made it vanish. Now: an event in the middle of a cast that is already drawn
+-- keeps the drawing when the game says "no target"; a cast that STARTS with "no target" is asked again a few times
+-- (the diary says whether the answer changes), and every diary line says which event, channel or not, and the cast id.
+local MID = { UNIT_SPELLCAST_CHANNEL_UPDATE = true, UNIT_SPELLCAST_DELAYED = true,
+    UNIT_SPELLCAST_INTERRUPTIBLE = true, UNIT_SPELLCAST_NOT_INTERRUPTIBLE = true, RETRY = true }
+local RETRIES = { 0.3, 0.8, 1.5 }
+local drawnCast = {}    -- [caster] = castBarID of the cast on screen (plain only)
+
+local function Plain(v)
+    if v == nil then return "nil" end
+    if issecretvalue(v) then return "secret" end
+    return tostring(v)
+end
+
+local function Update(caster, event)
+    event = event or "?"
     local db = ns.db
-    if not (db and db.kick) or not UnitCanAttack("player", caster) then return end
+    if not (db and db.kick) or not UnitCanAttack("player", caster) then return Release(caster) end
     local channel = false
     local _, text, texture, _, _, _, _, locked, spellID, castBarID = UnitCastingInfo(caster)
     if castBarID == nil then
         channel = true
         _, text, texture, _, _, _, locked, spellID, _, _, castBarID = UnitChannelInfo(caster)
     end
-    if castBarID == nil then return end
+    if castBarID == nil then
+        drawnCast[caster] = nil
+        return Release(caster)
+    end
+    local sameCast = live[caster] ~= nil and not issecretvalue(castBarID) and drawnCast[caster] == castBarID
+    local tag = ("ev=%s ch=%s id=%s"):format((event:gsub("^UNIT_SPELLCAST_", "")), tostring(channel), Plain(castBarID))
+    if MID[event] and sameCast then
+        local okK, targetedK = pcall(UnitShouldDisplaySpellTargetName, caster)
+        if okK and not issecretvalue(targetedK) and not targetedK then
+            return Diary(caster, "kept " .. tag)   -- the game forgot the target mid-cast: the icon stays
+        end
+    end
+    if event == "RETRY" and live[caster] then return end   -- drawn meanwhile by a real event
+    Release(caster, true)   -- the same enemy keeps its place in the row
     -- (04/11) each row of the table has its on/off: the cast (castMark), the channel (partyChannel), the
     -- uninterruptible (partyLocked); and each its alert
     local onFrame = (channel and db.partyChannel ~= false) or (not channel and db.castMark ~= false)
@@ -358,7 +441,19 @@ local function Update(caster)
     local okT, targeted = pcall(UnitShouldDisplaySpellTargetName, caster)
     if ns.Log.enabled then ns.Log.Seen("target.has.secret", okT and issecretvalue(targeted)) end
     if not okT or (not issecretvalue(targeted) and not targeted) then
-        Diary(caster, "no-target" .. (okT and "" or " (call failed)"))
+        Diary(caster, "no-target " .. tag .. (okT and "" or " (call failed)"))
+        -- a cast that starts without a target: ask again, the game may attach it a moment later
+        if (event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START") and not issecretvalue(castBarID) then
+            for _, delay in ipairs(RETRIES) do
+                C_Timer.After(delay, function()
+                    local _, _, _, _, _, _, _, _, _, id = UnitCastingInfo(caster)
+                    if id == nil then _, _, _, _, _, _, _, _, _, _, id = UnitChannelInfo(caster) end
+                    if id ~= nil and not issecretvalue(id) and id == castBarID and not live[caster] then
+                        CastTarget.Update(caster, "RETRY")
+                    end
+                end)
+            end
+        end
         return
     end
     if not ns.Has(locked) then locked = false end
@@ -369,7 +464,7 @@ local function Update(caster)
         if ns.Log.enabled and UnitExists(member) then ns.Log.Seen("target.frame", frame and "found" or "missing") end
         if frame and UnitExists(member) then
             local o = table.remove(spare) or NewOverlay()
-            Place(o, frame)
+            Place(o, frame, TakeSlot(caster))
             if db.kickFilter == "important" and ns.Has(spellID) then
                 o.important:SetAlphaFromBoolean(C_Spell.IsSpellImportant(spellID), 1, 0)
             else
@@ -415,25 +510,26 @@ local function Update(caster)
         local measured = {}
         for member in pairs(rulers[caster] or {}) do measured[#measured + 1] = member end
         table.sort(measured)
-        Diary(caster, ("cast locked=%s measured=%s fresh=%d reused=%d"):format(
+        Diary(caster, ("cast %s locked=%s measured=%s fresh=%d reused=%d"):format(tag,
             issecretvalue(locked) and "secret" or tostring(locked), table.concat(measured, ","), taken.fresh, taken.reused))
     end
+    if not issecretvalue(castBarID) then drawnCast[caster] = castBarID end
     Gate(caster)
     if not ticker then ticker = C_Timer.NewTicker(TICK, CastTarget.Refresh) end
 end
 
 function CastTarget.__live() return live end
 
-function CastTarget.Update(caster)
-    local ok, err = pcall(Update, caster)
+function CastTarget.Update(caster, event)
+    local ok, err = pcall(Update, caster, event)
     if not ok then
         Release(caster)
         ns.Log.Error("target", err)
     end
 end
 
-local function OnCast(unit)
-    if ns.IsPlateUnit(unit) then CastTarget.Update(unit) end
+local function OnCast(event, unit)
+    if ns.IsPlateUnit(unit) then CastTarget.Update(unit, event) end
 end
 
 for _, event in ipairs({
@@ -441,7 +537,7 @@ for _, event in ipairs({
     "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP", "UNIT_SPELLCAST_CHANNEL_UPDATE",
     "UNIT_SPELLCAST_DELAYED", "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
 }) do
-    ns.On(event, OnCast)
+    ns.On(event, function(unit) OnCast(event, unit) end)
 end
 ns.On("NAME_PLATE_UNIT_REMOVED", function(unit)
     if not issecretvalue(unit) then Release(unit) end

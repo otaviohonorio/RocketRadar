@@ -30,7 +30,7 @@ local function TokenOf(plate)
     if token then return token end
     token = CreateFrame("Frame", nil, plate)
     token:SetSize(22, 22)
-    token:SetFrameStrata("HIGH")
+    token:SetFrameStrata("BACKGROUND")   -- over the plates (WORLD), under the windows (L-072, Cards.lua)
     token:SetPoint("RIGHT", plate, "LEFT", -2, 0)
     token.icon = token:CreateTexture(nil, "ARTWORK")
     token.icon:SetAllPoints()

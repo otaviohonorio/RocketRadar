@@ -73,6 +73,14 @@ local function Secret()
     return ok and yes == true
 end
 
+-- (05/11) every call to the engine goes through Try: a refused one is written in the diary with its error (until
+-- now these pcalls threw the error away, and "nothing shows" had no cause to read)
+local function Try(where, fn, ...)
+    local ok, err = pcall(fn, ...)
+    if not ok then ns.Log.Error("debuffs:" .. where, err) end
+    return ok
+end
+
 local function Ready()
     if ready ~= nil then return ready end
     if C_AddOns and C_AddOns.LoadAddOn then pcall(C_AddOns.LoadAddOn, "Blizzard_AuraContainer") end
@@ -217,6 +225,9 @@ end
 local function Register(button, kind)
     local p = button.rr
     local style = Enum.CustomAuraButtonDispelTypeTextureStyle
+    -- (05/11) the game's CustomAuraButtonTemplate has NO size (Blizzard_CustomAuraButton.xml): without this every
+    -- button the engine showed was 0x0, and the right side never showed a thing (diary: sz=0x0 on all 30)
+    button:SetSize(Debuffs.SIZE, Debuffs.SIZE)
     pcall(button.ClearDispelTypeTextures, button)
     button:SetIcon(p.icon)
     button:SetDurationCooldown(p.cd)
@@ -247,6 +258,7 @@ local function Initialize(rec, kind)
     return function(button)
         button:EnableMouse(false)
         if button.SetMouseMotionEnabled then button:SetMouseMotionEnabled(false) end
+        Try("size", button.SetSize, button, Debuffs.SIZE, Debuffs.SIZE)
         button.rr = Debuffs.Dress(button, Debuffs.SIZE)
         button.rr.kind = kind
         -- the dark covers the time already gone and grows with it: the ring empties (the game's buffs do the same)
@@ -265,27 +277,41 @@ local function Layout(index, first)
 end
 
 ---Where the container sits: to the right of the frame, after the cast's slot, its middle on the frame's middle.
+-- (05/11, the user's choice) the debuffs touch the frame, with no hole: the cast's icon comes AFTER the last debuff
+-- (CastTarget.lua anchors it to this container's right end; the engine sizes the container to its icons, a secret
+-- width the anchor follows without us reading it). Before, the first slot was always the cast's, empty most of the time.
 local function Place(rec, owner)
     local c = rec.container
     c:ClearAllPoints()
-    c:SetPoint("LEFT", owner, "RIGHT", Debuffs.SIDE + Debuffs.SIZE + Debuffs.GROUP_GAP, 0)
+    c:SetPoint("LEFT", owner, "RIGHT", Debuffs.SIDE, 0)
+end
+
+---Where the cast's icon goes for a party frame: after our debuffs when the right side is on, else the frame itself.
+---Returns the frame to anchor to and the gap.
+function Debuffs.CastAnchor(frame)
+    local rec = records[frame]
+    if rec and ns.db.debuffs ~= false then return rec.container, Debuffs.SIDE end
+    return frame, Debuffs.SIDE
 end
 
 local function Apply(rec)
     local c = rec.container
     local on = ns.db.debuffs ~= false
-    pcall(c.SetAuraGroupFilterString, c, MINE, Debuffs.MineFilter())
-    pcall(c.SetAuraGroupCandidateFilters, c, MINE, MineCandidates())
-    pcall(c.SetAuraGroupEnabled, c, MINE, on)
-    pcall(c.SetAuraGroupEnabled, c, MOVE, Debuffs.MoveOn())
-    pcall(c.SetAuraGroupFilterString, c, BOSS, Debuffs.BossFilter())
-    pcall(c.SetAuraGroupEnabled, c, BOSS, on and ns.db.bossDebuffs ~= false)
+    Try("filter.mine", c.SetAuraGroupFilterString, c, MINE, Debuffs.MineFilter())
+    Try("cand.mine", c.SetAuraGroupCandidateFilters, c, MINE, MineCandidates())
+    Try("on.mine", c.SetAuraGroupEnabled, c, MINE, on)
+    Try("on.move", c.SetAuraGroupEnabled, c, MOVE, Debuffs.MoveOn())
+    Try("filter.boss", c.SetAuraGroupFilterString, c, BOSS, Debuffs.BossFilter())
+    Try("on.boss", c.SetAuraGroupEnabled, c, BOSS, on and ns.db.bossDebuffs ~= false)
     for _, b in ipairs(rec.buttons) do
         local ok, err = pcall(Register, b, b.rr.kind)
         if not ok then ns.Log.Error("debuffs:register", err) end
     end
-    pcall(c.SetEnabled, c, on)
-    pcall(c.UpdateAllAuras, c)
+    Try("show", c.Show, c)
+    Try("enabled", c.SetEnabled, c, on)
+    Try("update", c.UpdateAllAuras, c)
+    ns.Log.Seen("debuffs:apply", ("on=%s mine=%s move=%s boss=%s"):format(tostring(on), Debuffs.MineFilter(),
+        tostring(Debuffs.MoveOn()), Debuffs.BossFilter()))
 end
 
 local function Attach(owner, unit)
@@ -314,7 +340,7 @@ local function Attach(owner, unit)
     rec = { container = c, unit = unit, buttons = {} }
     records[owner] = rec
     Place(rec, owner)
-    pcall(c.SetUnit, c, unit)
+    Try("unit", c.SetUnit, c, unit)
     local okA, err = pcall(function()
         c:AddAuraGroup(MINE, Debuffs.MineFilter(), {
             maxFrameCount = MAX_MINE, candidateFilters = MineCandidates(),
