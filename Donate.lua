@@ -98,9 +98,9 @@ end
 --
 ns.REPORT = {
     { name = "GitHub", url = "https://github.com/otaviohonorio/RocketRadar/issues" },
+    { name = "CurseForge", url = "https://www.curseforge.com/wow/addons/rocket-radar/comments" },   -- project 1783002
 }
--- (09/11) GitHub only: the CurseForge project (1783002) was deleted by the user on 05/11 ("não funciona ainda"); an
--- addon without a CurseForge project offers only GitHub. A new project brings the second line back.
+-- (09/11) The project was deleted on 05/11 but still opened for editing; 0.1.3 goes back to it.
 
 -- The place chosen, for the dialog that is open.
 local reporting
