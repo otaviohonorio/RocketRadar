@@ -3,8 +3,7 @@
 ## Notes: Adds to the game's own nameplates, without replacing them: what to interrupt, in front of the pile, and who holds each mob.
 ## Notes-ptBR: Soma às placas do próprio jogo, sem trocá-las: o que interromper, à frente da pilha, e com quem está cada mob.
 ## Author: Otto Rocket (Otávio Honório)
-## Version: 0.1.1
-## X-Curse-Project-ID: 1783002
+## Version: 0.1.2
 #@non-debug@
 # ## SavedVariables: RocketRadarDB
 #@end-non-debug@
