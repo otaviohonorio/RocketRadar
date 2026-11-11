@@ -21,6 +21,7 @@ Log.lua
 DevShots.lua
 Data\CensusIds.lua
 Census.lua
+MarkProbe.lua
 #@end-debug@
 Locales\enUS.lua
 Locales\ptBR.lua

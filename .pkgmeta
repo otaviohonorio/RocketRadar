@@ -12,6 +12,7 @@ ignore:
   - Log.lua
   - DevShots.lua
   - Census.lua
+  - MarkProbe.lua
   - Data/CensusIds.lua
 
 # O changelog do CurseForge sai DESTE arquivo, e não dos commits. Sem isto o packager lista as
