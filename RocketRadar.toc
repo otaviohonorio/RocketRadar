@@ -19,6 +19,8 @@ Core.lua
 #@debug@
 Log.lua
 DevShots.lua
+Data\CensusIds.lua
+Census.lua
 #@end-debug@
 Locales\enUS.lua
 Locales\ptBR.lua
