@@ -44,7 +44,11 @@ ns.Party = Party
 
 local SPELLS, SPECS, ROLE_SPEC = ns.PARTY_SPELLS, ns.PARTY_SPECS, ns.PARTY_ROLE_SPEC
 local CC = ns.PARTY_CC or {}
-local PLATES = 20    -- enemy plates watched per ability: a Mythic+ pull (the diary counts the plates beyond it)
+-- Enemy plates watched per ability. 20 until the first key (11/11): the diary counted 108 plates numbered above 20 in one
+-- key, so the game hands out every token up to 40. Only the plates that exist are READ (see ReadPlates), so the cost
+-- follows the pull, not the 40.
+local PLATES = 40
+local activePlate = {}   -- [index] = true while nameplate<index> exists
 local UNITS = { "player", "party1", "party2", "party3", "party4" }
 local TRACKED = {}
 for _, u in ipairs(UNITS) do TRACKED[u] = true end
@@ -95,7 +99,7 @@ local spare = { sensors = {}, cells = {} }
 local ready, pending, queued, ticker
 local meter, radial  -- radial: nil until the self-check ran, then true (clock swipe) or false (falling veil)
 local stats = { reads = 0, secret = 0, errors = 0, items = 0, anchored = 0, exact = 0, exactFail = 0, cc = 0,
-    plateSensors = 0, platesBeyond = 0, talentReads = 0, talentFail = 0 }
+    plateSensors = 0, platesBeyond = 0, plateReads = 0, talentReads = 0, talentFail = 0 }
 
 local function Fault(where, err)
     stats.errors = stats.errors + 1
@@ -346,7 +350,39 @@ local function Roll(t, n)
     sl.c, sl.v, sl.epoch = 0, 0, n
 end
 
+-- A crowd-control icon: only the plates that exist are read; "was lit before" is kept per plate, so a plate coming or
+-- going does not cost the edge of the others. A plate that appears already marked counts as a use (accepted).
+local function ReadPlates(t, n)
+    local lits, prev, now = {}, {}, {}
+    local before = t.prevBy or {}
+    for i, s in ipairs(t.sensors) do
+        if activePlate[i] then
+            local ok, lit = pcall(s.IsMouseOver, s, 1e5, -1e5, 0, 0)
+            if not ok then return Fault("party:read", lit) end
+            stats.reads, stats.plateReads = stats.reads + 1, stats.plateReads + 1
+            if issecretvalue(lit) then stats.secret = stats.secret + 1 end
+            lits[#lits + 1] = lit
+            now[i] = lit
+            if before[i] ~= nil then prev[#prev + 1] = before[i] end
+        end
+    end
+    t.prevBy = now
+    local okG, errG = pcall(function() t.cell.glow:SetAlpha(Pick(lits, 1, 0)) end)
+    if not okG then Fault("party:glow", errG) end
+    if t.exact or #lits == 0 then return end
+    Roll(t, n)
+    local sl, other = t.slot[t.cur], t.slot[3 - t.cur]
+    local stamp = math.min(254, math.max(1, math.floor((n - sl.epoch) / t.u) + 1)) / 255
+    local okE, err = pcall(function()
+        sl.c = Pick(lits, Pick(prev, sl.c, stamp), sl.c)
+        sl.v = Pick(lits, Pick(prev, sl.v, 1), sl.v)
+        other.v = Pick(lits, Pick(prev, other.v, 0), other.v)
+    end)
+    if not okE then Fault("party:edge", err) end
+end
+
 local function Read(t, n)
+    if t.plateSig then return ReadPlates(t, n) end
     local lits = {}
     for i, s in ipairs(t.sensors) do
         local ok, lit = pcall(s.IsMouseOver, s, 1e5, -1e5, 0, 0)
@@ -689,6 +725,7 @@ local function AimPlates()
         n = n + #plates[sig]
     end
     stats.plateSensors = n
+    for i = 1, PLATES do activePlate[i] = UnitExists("nameplate" .. i) or nil end
 end
 
 ---An enemy plate came or went: its sensors read the new unit (allowed in combat: 1,300 times in a key, no error).
@@ -697,6 +734,7 @@ function Party.PlateChanged(unit)
     local i = tonumber(unit:match("^nameplate(%d+)$"))
     if not i then return end
     if i > PLATES then stats.platesBeyond = stats.platesBeyond + 1 return end
+    activePlate[i] = UnitExists(unit) or nil
     for _, list in pairs(plates) do
         local c = list[i]
         if c then pcall(c.UpdateAllAuras, c) end
@@ -926,8 +964,8 @@ ns.On("TRAIT_CONFIG_UPDATED", function()
 end)
 ns.On("PLAYER_REGEN_ENABLED", function()
     if ns.Log.enabled then
-        ns.Log.Event(("party cc icons=%d plateSensors=%d platesBeyond=%d talentReads=%d talentFail=%d errors=%d"):format(
-            stats.cc, stats.plateSensors, stats.platesBeyond, stats.talentReads, stats.talentFail, stats.errors))
+        ns.Log.Event(("party cc icons=%d plateSensors=%d plateReads=%d platesBeyond=%d talentReads=%d talentFail=%d errors=%d"):format(
+            stats.cc, stats.plateSensors, stats.plateReads, stats.platesBeyond, stats.talentReads, stats.talentFail, stats.errors))
     end
     if pending then Party.Build() end
     InspectNext()
@@ -1006,4 +1044,5 @@ function Party.radial() return radial end
 function Party.gap() return GAP end
 function Party.zones() return zone end
 function Party.plates() return plates end
+function Party.activePlates() return activePlate end
 function Party.talents() return talentsByGUID end
