@@ -600,19 +600,20 @@ end
 ---(12/11) The recharge of a crowd control for a teammate: the table's, changed by the talents the inspection found
 ---(Data/CrowdControl.lua `mods`: the game's value for each rank; flat first, then percent, as the game does). Without
 ---the inspection, the table's. The player's own is the game's exact clock and does not come here.
+---Returns the recharge in seconds and the charges (`charges`: a talent's extra charges, Death's Echo).
 function Party.CCCooldown(e, known, spec)
-    local flat, pct = 0, 0
+    local flat, pct, extra = 0, 0, 0
     for _, m in ipairs(e.mods or {}) do
         local rank = known and known[m.t]
         local okSpec = not m.specs
         for _, s in ipairs(m.specs or {}) do if s == spec then okSpec = true end end
         if type(rank) == "number" and rank > 0 and okSpec then
-            local list = m.flat or m.pct
+            local list = m.flat or m.pct or m.charges
             local v = list[math.min(rank, #list)] or 0
-            if m.flat then flat = flat + v else pct = pct + v end
+            if m.flat then flat = flat + v elseif m.pct then pct = pct + v else extra = extra + v end
         end
     end
-    return math.max(1, math.floor((e.cd + flat) * (1 + pct / 100) + 0.5))
+    return math.max(1, math.floor((e.cd + flat) * (1 + pct / 100) + 0.5)), (e.ch or 1) + extra
 end
 
 local function Fill(rec, list, spec)
@@ -653,10 +654,16 @@ local function Fill(rec, list, spec)
         if not shown[e.id] and not off[Party.OffKey(spec, e.id)] and HasCC(rec, e, spec, isPlayer) then
             shown[e.id] = true
             local cell = table.remove(spare.cells) or NewCell()
-            local cd = isPlayer and e.cd or Party.CCCooldown(e, rec.guid and talentsByGUID[rec.guid], spec)
+            local cd, ch, dyn = e.cd, e.ch, nil
+            if not isPlayer then
+                local known = rec.guid and talentsByGUID[rec.guid]
+                cd, ch = Party.CCCooldown(e, known, spec)
+                dyn = e.dyn
+                for _, tid in ipairs(e.dynT or {}) do if known and known[tid] then dyn = true end end
+            end
             -- dyn: other spells shorten it as they are cast, hidden in a teammate -> it lights, no recharge claimed
-            local t = { id = e.id, cd = cd, ch = e.ch, cell = cell, exact = isPlayer, sensors = {},
-                plateSig = Signature(e.marks), marks = e.marks, cc = true, dyn = e.dyn and not isPlayer or nil }
+            local t = { id = e.id, cd = cd, ch = ch, cell = cell, exact = isPlayer, sensors = {},
+                plateSig = Signature(e.marks), marks = e.marks, cc = true, dyn = dyn }
             cell.spell = e.id
             cell.icon:SetTexture(C_Spell.GetSpellTexture(e.id))
             Reset(t, Now())

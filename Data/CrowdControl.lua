@@ -5,13 +5,14 @@
 -- and, for a specialization's own ability (or its pet's), which specializations have it. `also`: the other forms of
 -- the same spell (one icon), whose talent also counts. `mods`: the talents that change the recharge (t = talent
 -- spell; flat = seconds, pct = percent, one value per rank taken: the game's curve for each rank; flat first,
--- then percent, as the game does). `dyn`: other spells shorten it as they are cast (hidden in a teammate): no recharge is claimed.
+-- then percent, as the game does; charges = extra charges). `dyn`: other spells shorten it as they are cast (hidden in a teammate): no recharge is claimed;
+-- `dynT`: the same, for a teammate with one of these talents (what shortens it happened in the fight).
 local ADDON, ns = ...
 
 ns.PARTY_CC = {
     DEATHKNIGHT = {
         { id = 47481, cd = 90, ch = 1, marks = { 91800, 260563 }, specs = { 252 }, also = { 91800 } }, -- Gnaw / Mordisco
-        { id = 49576, cd = 25, ch = 1, marks = { 51399, 57603 } }, -- Death Grip / Garra da Morte
+        { id = 49576, cd = 25, ch = 1, marks = { 51399, 57603 }, dynT = { 276079 }, mods = { { t = 356367, charges = { 1 } } } }, -- Death Grip / Garra da Morte
         { id = 91797, cd = 90, ch = 1, marks = { 91797 }, specs = { 252 } }, -- Monstrous Blow / Golpe Monstruoso
         { id = 91802, cd = 30, ch = 1, marks = { 91807 }, specs = { 252 }, kick = true }, -- Shambling Rush / Ímpeto Titubeante
         { id = 207167, cd = 60, ch = 1, marks = { 207167 }, talent = true }, -- Blinding Sleet / Saraivada Cegante
@@ -21,17 +22,17 @@ ns.PARTY_CC = {
     },
     DEMONHUNTER = {
         { id = 179057, cd = 45, ch = 1, marks = { 179057 }, talent = true }, -- Chaos Nova / Nova Entrópica
-        { id = 202137, cd = 90, ch = 1, marks = { 204490 }, talent = true }, -- Sigil of Silence / Signo do Silêncio
-        { id = 207684, cd = 120, ch = 1, marks = { 207685 }, talent = true }, -- Sigil of Misery / Signo da Aflição
+        { id = 202137, cd = 90, ch = 1, marks = { 204490 }, talent = true, mods = { { t = 389718, pct = { -15 } }, { t = 320418, flat = { -15 } } } }, -- Sigil of Silence / Signo do Silêncio
+        { id = 207684, cd = 120, ch = 1, marks = { 207685 }, talent = true, mods = { { t = 320418, flat = { -30 } }, { t = 389718, pct = { -15 } } } }, -- Sigil of Misery / Signo da Aflição
         { id = 217832, cd = 45, ch = 1, marks = { 217832 }, talent = true }, -- Imprison / Aprisionar
-        { id = 370965, cd = 90, ch = 1, marks = { 323996, 333762, 345335, 370969, 370970, 1246168 }, talent = true, also = { 1246167 } }, -- The Hunt / A Caçada
+        { id = 370965, cd = 90, ch = 1, marks = { 323996, 333762, 345335, 370969, 370970, 1246168 }, talent = true, also = { 1246167 }, mods = { { t = 1270900, flat = { -15, -30 } } } }, -- The Hunt / A Caçada
         { id = 1234195, cd = 45, ch = 1, marks = { 1234195 }, talent = true }, -- Void Nova / Nova do Caos
     },
     DRUID = {
         { id = 99, cd = 30, ch = 1, marks = { 99 }, talent = true }, -- Incapacitating Roar / Rugido Incapacitante
         { id = 5211, cd = 60, ch = 1, marks = { 5211 }, talent = true }, -- Mighty Bash / Trombada Poderosa
         { id = 22570, cd = 30, ch = 1, marks = { 203123, 203126 }, talent = true }, -- Maim / Mutilar
-        { id = 78675, cd = 60, ch = 1, marks = { 81261 }, talent = true, kick = true }, -- Solar Beam / Raio Solar
+        { id = 78675, cd = 60, ch = 1, marks = { 81261 }, talent = true, kick = true, dynT = { 202918 } }, -- Solar Beam / Raio Solar
         { id = 132469, cd = 30, ch = 1, marks = { 61391 }, talent = true, mods = { { t = 400140, flat = { -5 } } } }, -- Typhoon / Tufão
     },
     EVOKER = {
@@ -71,7 +72,7 @@ ns.PARTY_CC = {
     SHAMAN = {
         { id = 51490, cd = 30, ch = 1, marks = { 51490 }, talent = true }, -- Thunderstorm / Tempestade Relampejante
         { id = 51514, cd = 30, ch = 1, marks = { 51514, 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, talent = true, also = { 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, mods = { { t = 204268, flat = { -15 } } } }, -- Hex / Bagata
-        { id = 192058, cd = 60, ch = 1, marks = { 118905 }, talent = true, mods = { { t = 265046, flat = { -10, -20 } } } }, -- Capacitor Totem / Totem Capacitor
+        { id = 192058, cd = 60, ch = 1, marks = { 118905 }, talent = true, dynT = { 445027 }, mods = { { t = 265046, flat = { -10, -20 } } } }, -- Capacitor Totem / Totem Capacitor
     },
     WARLOCK = {
         { id = 5484, cd = 40, ch = 1, marks = { 5484 }, talent = true, mods = { { t = 429072, flat = { -10 } }, { t = 1270255, flat = { -5 } } } }, -- Howl of Terror / Uivo do Terror
@@ -82,7 +83,7 @@ ns.PARTY_CC = {
     },
     WARRIOR = {
         { id = 5246, cd = 90, ch = 1, marks = { 5246 }, talent = true, mods = { { t = 424742, flat = { -15 } } } }, -- Intimidating Shout / Brado Intimidador
-        { id = 46968, cd = 40, ch = 1, marks = { 132168 }, talent = true, mods = { { t = 440992, flat = { -5 } } } }, -- Shockwave / Onda de Choque
+        { id = 46968, cd = 40, ch = 1, marks = { 132168 }, talent = true, dynT = { 275339 }, mods = { { t = 440992, flat = { -5 } } } }, -- Shockwave / Onda de Choque
         { id = 107570, cd = 30, ch = 1, marks = { 132169, 222897 }, talent = true, mods = { { t = 391271, pct = { -10 } }, { t = 436162, flat = { 10 } } } }, -- Storm Bolt / Seta Tempestuosa
         { id = 386071, cd = 90, ch = 1, marks = { 386071 }, talent = true, kick = true }, -- Disrupting Shout / Brado Interruptivo
     },
