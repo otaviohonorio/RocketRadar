@@ -369,7 +369,7 @@ local function ReadPlates(t, n)
     t.prevBy = now
     local okG, errG = pcall(function() t.cell.glow:SetAlpha(Pick(lits, 1, 0)) end)
     if not okG then Fault("party:glow", errG) end
-    if t.exact or #lits == 0 then return end
+    if t.exact or t.dyn or #lits == 0 then return end
     Roll(t, n)
     local sl, other = t.slot[t.cur], t.slot[3 - t.cur]
     local stamp = math.min(254, math.max(1, math.floor((n - sl.epoch) / t.u) + 1)) / 255
@@ -597,6 +597,24 @@ local function HasCC(rec, e, spec, isPlayer)
     return false
 end
 
+---(12/11) The recharge of a crowd control for a teammate: the table's, changed by the talents the inspection found
+---(Data/CrowdControl.lua `mods`: the game's value for each rank; flat first, then percent, as the game does). Without
+---the inspection, the table's. The player's own is the game's exact clock and does not come here.
+function Party.CCCooldown(e, known, spec)
+    local flat, pct = 0, 0
+    for _, m in ipairs(e.mods or {}) do
+        local rank = known and known[m.t]
+        local okSpec = not m.specs
+        for _, s in ipairs(m.specs or {}) do if s == spec then okSpec = true end end
+        if type(rank) == "number" and rank > 0 and okSpec then
+            local list = m.flat or m.pct
+            local v = list[math.min(rank, #list)] or 0
+            if m.flat then flat = flat + v else pct = pct + v end
+        end
+    end
+    return math.max(1, math.floor((e.cd + flat) * (1 + pct / 100) + 0.5))
+end
+
 local function Fill(rec, list, spec)
     local isPlayer = rec.unit == "player"
     local off = Cfg().off
@@ -635,8 +653,10 @@ local function Fill(rec, list, spec)
         if not shown[e.id] and not off[Party.OffKey(spec, e.id)] and HasCC(rec, e, spec, isPlayer) then
             shown[e.id] = true
             local cell = table.remove(spare.cells) or NewCell()
-            local t = { id = e.id, cd = e.cd, ch = e.ch, cell = cell, exact = isPlayer, sensors = {},
-                plateSig = Signature(e.marks), marks = e.marks, cc = true }
+            local cd = isPlayer and e.cd or Party.CCCooldown(e, rec.guid and talentsByGUID[rec.guid], spec)
+            -- dyn: other spells shorten it as they are cast, hidden in a teammate -> it lights, no recharge claimed
+            local t = { id = e.id, cd = cd, ch = e.ch, cell = cell, exact = isPlayer, sensors = {},
+                plateSig = Signature(e.marks), marks = e.marks, cc = true, dyn = e.dyn and not isPlayer or nil }
             cell.spell = e.id
             cell.icon:SetTexture(C_Spell.GetSpellTexture(e.id))
             Reset(t, Now())
@@ -877,7 +897,7 @@ local function ReadTalents(guid)
                     local e = T.GetEntryInfo(config, act.entryID)
                     local d = type(e) == "table" and e.definitionID and T.GetDefinitionInfo(e.definitionID)
                     local spell = type(d) == "table" and d.spellID
-                    if type(spell) == "number" and not issecretvalue(spell) then got[spell] = true n = n + 1 end
+                    if type(spell) == "number" and not issecretvalue(spell) then got[spell] = rank n = n + 1 end
                 end
             end
         end
@@ -886,6 +906,14 @@ local function ReadTalents(guid)
     if ok and out then
         talentsByGUID[guid] = out
         stats.talentReads = stats.talentReads + 1
+        -- (12/11) the talents read, to compare offline with the combat log (COMBATANT_INFO lists every player's talents
+        -- at each encounter's start): "talents <guid> <spell>:<rank> ..."
+        if ns.Log.enabled then
+            local parts = {}
+            for id, r in pairs(out) do parts[#parts + 1] = id .. ":" .. r end
+            table.sort(parts)
+            ns.Log.Event("talents " .. guid .. " " .. table.concat(parts, " "))
+        end
     else
         talentTries[guid] = (talentTries[guid] or 0) + 1
         stats.talentFail = stats.talentFail + 1

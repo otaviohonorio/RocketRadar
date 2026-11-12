@@ -126,6 +126,23 @@ function PW.Fill()
             r.icon:Show()
             r.name:Show()
         end
+        -- (12/11) the class's crowd control (Data/CrowdControl.lua) the specialization can have, after its spells: the
+        -- same box and key, so it can be turned off like any other icon
+        for _, e in ipairs((ns.PARTY_CC or {})[class.file] or {}) do
+            local mine = not e.specs
+            for _, s in ipairs(e.specs or {}) do if s == spec then mine = true end end
+            if mine then
+                n = n + 1
+                local r = Row(col, n)
+                r.key, r.face = ns.Party.OffKey(spec, e.id), e.id
+                r:SetChecked(not off[r.key])
+                r.icon:SetTexture(C_Spell.GetSpellTexture(e.id))
+                r.name:SetText(C_Spell.GetSpellName(e.id) or tostring(e.id))
+                r:Show()
+                r.icon:Show()
+                r.name:Show()
+            end
+        end
         for k = n + 1, #col.rows do
             col.rows[k]:Hide()
             col.rows[k].icon:Hide()

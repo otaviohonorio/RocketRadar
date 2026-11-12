@@ -3,7 +3,9 @@
 -- on an enemy (crowd control, and the interrupts with a mark of their own), with the recharge in seconds, the
 -- charges, the mark's aura ids, whether it is a talent (shown for a teammate only if the inspection found it)
 -- and, for a specialization's own ability (or its pet's), which specializations have it. `also`: the other forms of
--- the same spell (one icon), whose talent also counts.
+-- the same spell (one icon), whose talent also counts. `mods`: the talents that change the recharge (t = talent
+-- spell; flat = seconds, pct = percent, one value per rank taken: the game's curve for each rank; flat first,
+-- then percent, as the game does). `dyn`: other spells shorten it as they are cast (hidden in a teammate): no recharge is claimed.
 local ADDON, ns = ...
 
 ns.PARTY_CC = {
@@ -30,58 +32,58 @@ ns.PARTY_CC = {
         { id = 5211, cd = 60, ch = 1, marks = { 5211 }, talent = true }, -- Mighty Bash / Trombada Poderosa
         { id = 22570, cd = 30, ch = 1, marks = { 203123, 203126 }, talent = true }, -- Maim / Mutilar
         { id = 78675, cd = 60, ch = 1, marks = { 81261 }, talent = true, kick = true }, -- Solar Beam / Raio Solar
-        { id = 132469, cd = 30, ch = 1, marks = { 61391 }, talent = true }, -- Typhoon / Tufão
+        { id = 132469, cd = 30, ch = 1, marks = { 61391 }, talent = true, mods = { { t = 400140, flat = { -5 } } } }, -- Typhoon / Tufão
     },
     EVOKER = {
         { id = 368970, cd = 180, ch = 1, marks = { 368970 } }, -- Tail Swipe / Revés com a Cauda
         { id = 396286, cd = 40, ch = 1, marks = { 431620 }, talent = true }, -- Upheaval / Revolta
     },
     HUNTER = {
-        { id = 19577, cd = 60, ch = 1, marks = { 24394, 1258508 }, talent = true, also = { 474421 } }, -- Intimidation / Intimidação
+        { id = 19577, cd = 60, ch = 1, marks = { 24394, 1258508 }, talent = true, also = { 474421 }, mods = { { t = 459507, flat = { -20 } } } }, -- Intimidation / Intimidação
         { id = 109248, cd = 45, ch = 1, marks = { 117526 }, talent = true }, -- Binding Shot / Disparo Aprisionador
     },
     MAGE = {
-        { id = 31661, cd = 45, ch = 1, marks = { 31661 }, talent = true }, -- Dragon's Breath / Sopro do Dragão
-        { id = 113724, cd = 45, ch = 1, marks = { 82691, 321329 }, talent = true }, -- Ring of Frost / Anel Gélido
+        { id = 31661, cd = 45, ch = 1, marks = { 31661 }, talent = true, mods = { { t = 387807, flat = { -5 } }, { t = 431067, pct = { -30 }, specs = { 64 } } } }, -- Dragon's Breath / Sopro do Dragão
+        { id = 113724, cd = 45, ch = 1, marks = { 82691, 321329 }, talent = true, mods = { { t = 387807, flat = { -5 } }, { t = 431067, pct = { -30 }, specs = { 63 } } } }, -- Ring of Frost / Anel Gélido
         { id = 383121, cd = 60, ch = 1, marks = { 383121 }, talent = true }, -- Mass Polymorph / Polimorfia em Massa
     },
     MONK = {
-        { id = 115078, cd = 45, ch = 1, marks = { 115078 }, talent = true }, -- Paralysis / Paralisia
-        { id = 119381, cd = 60, ch = 1, marks = { 119381 } }, -- Leg Sweep / Rasteira
+        { id = 115078, cd = 45, ch = 1, marks = { 115078 }, talent = true, mods = { { t = 344359, flat = { -8, -15 } } } }, -- Paralysis / Paralisia
+        { id = 119381, cd = 60, ch = 1, marks = { 119381 }, mods = { { t = 344359, flat = { -5, -10 } } } }, -- Leg Sweep / Rasteira
         { id = 198898, cd = 30, ch = 1, marks = { 198909 }, talent = true }, -- Song of Chi-Ji / Canção de Chi-Ji
         { id = 324312, cd = 60, ch = 1, marks = { 128846, 324382 }, talent = true }, -- Clash / Colisão
     },
     PALADIN = {
-        { id = 853, cd = 45, ch = 1, marks = { 853 } }, -- Hammer of Justice / Martelo da Justiça
-        { id = 115750, cd = 90, ch = 1, marks = { 105421 }, talent = true }, -- Blinding Light / Luz Ofuscante
+        { id = 853, cd = 45, ch = 1, marks = { 853 }, mods = { { t = 234299, flat = { -15 } } } }, -- Hammer of Justice / Martelo da Justiça
+        { id = 115750, cd = 90, ch = 1, marks = { 105421 }, talent = true, mods = { { t = 469325, flat = { -15 } } } }, -- Blinding Light / Luz Ofuscante
     },
     PRIEST = {
-        { id = 8122, cd = 40, ch = 1, marks = { 8122 }, talent = true }, -- Psychic Scream / Grito Psíquico
+        { id = 8122, cd = 40, ch = 1, marks = { 8122 }, talent = true, mods = { { t = 196704, flat = { -10 } } } }, -- Psychic Scream / Grito Psíquico
         { id = 15487, cd = 30, ch = 1, marks = { 15487 }, specs = { 258 } }, -- Silence / Silêncio
-        { id = 88625, cd = 60, ch = 1, marks = { 200196, 200200, 247587 }, talent = true }, -- Holy Word: Chastise / Palavra Sagrada: Castigar
+        { id = 88625, cd = 60, ch = 1, marks = { 200196, 200200, 247587 }, talent = true, dyn = true, mods = { { t = 1215275, flat = { -15 } }, { t = 1272359, flat = { -5 } } } }, -- Holy Word: Chastise / Palavra Sagrada: Castigar
         { id = 205364, cd = 30, ch = 1, marks = { 205364 }, talent = true }, -- Dominate Mind / Dominar Mente
     },
     ROGUE = {
         { id = 408, cd = 30, ch = 1, marks = { 408 } }, -- Kidney Shot / Golpe no Rim
         { id = 1776, cd = 25, ch = 1, marks = { 1776 }, talent = true }, -- Gouge / Esfaquear
-        { id = 2094, cd = 120, ch = 1, marks = { 2094 }, talent = true }, -- Blind / Cegar
+        { id = 2094, cd = 120, ch = 1, marks = { 2094 }, talent = true, mods = { { t = 200733, pct = { -50 } }, { t = 256165, pct = { -25 } }, { t = 441415, pct = { -10 } } } }, -- Blind / Cegar
     },
     SHAMAN = {
         { id = 51490, cd = 30, ch = 1, marks = { 51490 }, talent = true }, -- Thunderstorm / Tempestade Relampejante
-        { id = 51514, cd = 30, ch = 1, marks = { 51514, 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, talent = true, also = { 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 } }, -- Hex / Bagata
-        { id = 192058, cd = 60, ch = 1, marks = { 118905 }, talent = true }, -- Capacitor Totem / Totem Capacitor
+        { id = 51514, cd = 30, ch = 1, marks = { 51514, 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, talent = true, also = { 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, mods = { { t = 204268, flat = { -15 } } } }, -- Hex / Bagata
+        { id = 192058, cd = 60, ch = 1, marks = { 118905 }, talent = true, mods = { { t = 265046, flat = { -10, -20 } } } }, -- Capacitor Totem / Totem Capacitor
     },
     WARLOCK = {
-        { id = 5484, cd = 40, ch = 1, marks = { 5484 }, talent = true }, -- Howl of Terror / Uivo do Terror
+        { id = 5484, cd = 40, ch = 1, marks = { 5484 }, talent = true, mods = { { t = 429072, flat = { -10 } }, { t = 1270255, flat = { -5 } } } }, -- Howl of Terror / Uivo do Terror
         { id = 6358, cd = 30, ch = 1, marks = { 6358 } }, -- Seduction / Sedução
         { id = 6789, cd = 45, ch = 1, marks = { 6789 }, talent = true }, -- Mortal Coil / Espiral da Morte
-        { id = 30283, cd = 60, ch = 1, marks = { 30283 }, talent = true }, -- Shadowfury / Fúria Sombria
+        { id = 30283, cd = 60, ch = 1, marks = { 30283 }, talent = true, mods = { { t = 1270255, flat = { -15 } } } }, -- Shadowfury / Fúria Sombria
         { id = 89766, cd = 30, ch = 1, marks = { 89766 }, specs = { 266 }, kick = true }, -- Axe Toss / Arremesso de Machado
     },
     WARRIOR = {
-        { id = 5246, cd = 90, ch = 1, marks = { 5246 }, talent = true }, -- Intimidating Shout / Brado Intimidador
-        { id = 46968, cd = 40, ch = 1, marks = { 132168 }, talent = true }, -- Shockwave / Onda de Choque
-        { id = 107570, cd = 30, ch = 1, marks = { 132169, 222897 }, talent = true }, -- Storm Bolt / Seta Tempestuosa
+        { id = 5246, cd = 90, ch = 1, marks = { 5246 }, talent = true, mods = { { t = 424742, flat = { -15 } } } }, -- Intimidating Shout / Brado Intimidador
+        { id = 46968, cd = 40, ch = 1, marks = { 132168 }, talent = true, mods = { { t = 440992, flat = { -5 } } } }, -- Shockwave / Onda de Choque
+        { id = 107570, cd = 30, ch = 1, marks = { 132169, 222897 }, talent = true, mods = { { t = 391271, pct = { -10 } }, { t = 436162, flat = { 10 } } } }, -- Storm Bolt / Seta Tempestuosa
         { id = 386071, cd = 90, ch = 1, marks = { 386071 }, talent = true, kick = true }, -- Disrupting Shout / Brado Interruptivo
     },
 }
