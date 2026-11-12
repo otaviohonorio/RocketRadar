@@ -920,6 +920,11 @@ local function ReadTalents(guid)
             for id, r in pairs(out) do parts[#parts + 1] = id .. ":" .. r end
             table.sort(parts)
             ns.Log.Event("talents " .. guid .. " " .. table.concat(parts, " "))
+            -- (12/11) also kept apart, one line per teammate, so the cast lines never push it out
+            if RocketRadarLogDB then
+                RocketRadarLogDB.talents = RocketRadarLogDB.talents or {}
+                RocketRadarLogDB.talents[guid] = date("%d/%m %H:%M:%S") .. " " .. table.concat(parts, " ")
+            end
         end
     else
         talentTries[guid] = (talentTries[guid] or 0) + 1
