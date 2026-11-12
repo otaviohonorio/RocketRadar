@@ -25,6 +25,15 @@
 -- The time code lives in [0, 1] in steps of 1/255: a slot covers 254 steps of `u` seconds from its
 -- `epoch`. Two slots take turns every `cd` seconds, so a use is always stamped in a slot that can still
 -- show its whole recharge.
+-- (11/11/2026) CROWD CONTROL BY THE MARK ON THE ENEMY (Data/CrowdControl.lua, tools/radar_cc.py). A teammate's stun,
+-- fear, incapacitate... leaves no aura on HIM, but leaves its mark on the enemy, and a sensor on an enemy plate (HARMFUL,
+-- filtered by that mark's ids: allowed for harmful auras of enemies) lights in combat -- proven in a key the same night,
+-- 45 of 45 screenshots against the combat log (skill wow-grupo-recargas). So each such ability of each member gets an
+-- icon, read through PLATES sensors (one per enemy plate, per ability, shared by every member who has it): lit while any
+-- enemy carries the mark, and the rising edge starts the recharge. The owner comes from the specialization (and, for a
+-- talent, the inspection: ReadTalents below); two members with the same ability both light (the mark has no author we
+-- can read). An enemy that comes into view already marked counts as a use: accepted (the user, 11/11: "queremos se
+-- aproximar do 100% sabendo que nunca chegaremos lá"). The Radar is for Mythic+ (the user, 11/11): a party of five.
 -- ⚠ Blizzard sizes the container with a secret on purpose and pre-allocates frames "to make it
 -- harder to observe the transition between zero/non-zero auras": a patch may close this.
 local ADDON, ns = ...
@@ -34,6 +43,8 @@ local Party = {}
 ns.Party = Party
 
 local SPELLS, SPECS, ROLE_SPEC = ns.PARTY_SPELLS, ns.PARTY_SPECS, ns.PARTY_ROLE_SPEC
+local CC = ns.PARTY_CC or {}
+local PLATES = 20    -- enemy plates watched per ability: a Mythic+ pull (the diary counts the plates beyond it)
 local UNITS = { "player", "party1", "party2", "party3", "party4" }
 local TRACKED = {}
 for _, u in ipairs(UNITS) do TRACKED[u] = true end
@@ -78,10 +89,13 @@ local function Now() return math.floor(GetTime() - T0) end
 local host
 local units = {}    -- [unit] = { unit, guid, class, spec, items = { t, ... } }
 local zone = {}     -- [unit][signature] = sensor watching that member for those auras
+local plates = {}   -- [signature of marks] = { sensor of nameplate1, ..., nameplateN }
+local talentsByGUID = {}   -- [guid] = { [spellID] = true } read from the inspection (ReadTalents below)
 local spare = { sensors = {}, cells = {} }
 local ready, pending, queued, ticker
 local meter, radial  -- radial: nil until the self-check ran, then true (clock swipe) or false (falling veil)
-local stats = { reads = 0, secret = 0, errors = 0, items = 0, anchored = 0, exact = 0, exactFail = 0 }
+local stats = { reads = 0, secret = 0, errors = 0, items = 0, anchored = 0, exact = 0, exactFail = 0, cc = 0,
+    plateSensors = 0, platesBeyond = 0, talentReads = 0, talentFail = 0 }
 
 local function Fault(where, err)
     stats.errors = stats.errors + 1
@@ -130,6 +144,23 @@ local function Aim(c, unit, auras)
     pcall(c.SetEnabled, c, auras ~= nil)
     pcall(c.UpdateAllAuras, c)
     return true
+end
+
+-- A sensor of an enemy plate: the same geometry, on harmful auras (the marks of one ability)
+local function NewPlateSensor()
+    local ok, c = pcall(CreateFrame, "AuraContainer", nil, host, "CustomAuraContainerTemplate")
+    if not ok or not c then return Fault("party:plate", c) end
+    c:SetSize(1, 1)
+    c:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -11, 0)
+    pcall(c.EnableMouse, c, false)
+    local okG, err = pcall(c.AddAuraGroup, c, GROUP, "HARMFUL", {
+        maxFrameCount = 1,
+        candidateFilters = { includeSpellIDs = {} },
+        initializeFrame = Quiet,
+        layout = { elementWidth = WIDE, elementHeight = 1, elementSpacing = 0, lineSpacing = 0 },
+    })
+    if not okG then return Fault("party:plategroup", err) end
+    return c
 end
 
 local function TakeSensor(unit, auras)
@@ -509,6 +540,27 @@ end
 -- The key of a spell's box in the options (Window.lua's spell list): per specialization.
 function Party.OffKey(spec, id) return spec .. ":" .. id end
 
+-- Whether a member has an ability: the player by his spellbook; a teammate by the specialization and, for a talent, by
+-- what the inspection read (nothing read yet: not shown, rather than an icon for a talent he may not have).
+local function HasCC(rec, e, spec, isPlayer)
+    if e.specs then
+        local ok = false
+        for _, s in ipairs(e.specs) do if s == spec then ok = true end end
+        if not ok then return false end
+    end
+    if isPlayer then
+        if Known(e.id) then return true end
+        for _, a in ipairs(e.also or {}) do if Known(a) then return true end end
+        return false
+    end
+    if not e.talent then return true end
+    local known = rec.guid and talentsByGUID[rec.guid]
+    if not known then return false end
+    if known[e.id] then return true end
+    for _, a in ipairs(e.also or {}) do if known[a] then return true end end
+    return false
+end
+
 local function Fill(rec, list, spec)
     local isPlayer = rec.unit == "player"
     local off = Cfg().off
@@ -542,6 +594,19 @@ local function Fill(rec, list, spec)
             rec.items[#rec.items + 1] = t
         end
     end
+    -- the crowd control of the member's class, by its mark on the enemy (after the defensives and bursts)
+    for _, e in ipairs(CC[rec.class or ""] or {}) do
+        if not shown[e.id] and not off[Party.OffKey(spec, e.id)] and HasCC(rec, e, spec, isPlayer) then
+            shown[e.id] = true
+            local cell = table.remove(spare.cells) or NewCell()
+            local t = { id = e.id, cd = e.cd, ch = e.ch, cell = cell, exact = isPlayer, sensors = {},
+                plateSig = Signature(e.marks), marks = e.marks, cc = true }
+            cell.spell = e.id
+            cell.icon:SetTexture(C_Spell.GetSpellTexture(e.id))
+            Reset(t, Now())
+            rec.items[#rec.items + 1] = t
+        end
+    end
 end
 
 -- One sensor per (member, auras) for the effects that land on someone else; every icon reads them all.
@@ -570,6 +635,9 @@ local function AimZones()
     for _, u in ipairs(UNITS) do
         for _, t in ipairs(units[u] and units[u].items or {}) do
             local list = {}
+            if t.plateSig then
+                for i, c in ipairs(plates[t.plateSig] or {}) do list[i] = c end
+            end
             if t.own then list[1] = t.own end
             if t.sig then
                 for _, v in ipairs(UNITS) do
@@ -580,6 +648,58 @@ local function AimZones()
             if #list ~= #t.sensors then t.prev = nil end
             t.sensors = list
         end
+    end
+end
+
+-- One sensor per (enemy plate, ability with a mark) wanted by any member; out of combat only (Build).
+local function AimPlates()
+    local want = {}
+    local inGroup = IsInGroup() and not IsInRaid()
+    for _, u in ipairs(UNITS) do
+        for _, t in ipairs(units[u] and units[u].items or {}) do
+            if t.plateSig and inGroup then want[t.plateSig] = t.marks end
+        end
+    end
+    spare.plates = spare.plates or {}
+    for sig, list in pairs(plates) do
+        if not want[sig] then
+            for _, c in ipairs(list) do
+                pcall(c.SetEnabled, c, false)
+                spare.plates[#spare.plates + 1] = c
+            end
+            plates[sig] = nil
+        end
+    end
+    local n = 0
+    for sig, marks in pairs(want) do
+        if not plates[sig] then
+            local list, ids = {}, {}
+            for _, m in ipairs(marks) do ids[m] = true end
+            for i = 1, PLATES do
+                local c = table.remove(spare.plates) or NewPlateSensor()
+                if not c then break end
+                pcall(c.SetAuraGroupCandidateFilters, c, GROUP, { includeSpellIDs = ids })
+                pcall(c.SetUnit, c, "nameplate" .. i)
+                pcall(c.SetEnabled, c, true)
+                pcall(c.UpdateAllAuras, c)
+                list[i] = c
+            end
+            plates[sig] = list
+        end
+        n = n + #plates[sig]
+    end
+    stats.plateSensors = n
+end
+
+---An enemy plate came or went: its sensors read the new unit (allowed in combat: 1,300 times in a key, no error).
+function Party.PlateChanged(unit)
+    if type(unit) ~= "string" or issecretvalue(unit) then return end
+    local i = tonumber(unit:match("^nameplate(%d+)$"))
+    if not i then return end
+    if i > PLATES then stats.platesBeyond = stats.platesBeyond + 1 return end
+    for _, list in pairs(plates) do
+        local c = list[i]
+        if c then pcall(c.UpdateAllAuras, c) end
     end
 end
 
@@ -635,7 +755,7 @@ function Party.Build()
         pcall(meter.SetScale, meter, MEASURE)
         Party.Probe()
     end
-    stats.items, stats.anchored = 0, 0
+    stats.items, stats.anchored, stats.cc = 0, 0, 0
     local cfg = Cfg()
     local inGroup = IsInGroup() and not IsInRaid() and cfg.on
     local changed = {}
@@ -648,7 +768,10 @@ function Party.Build()
         if inGroup and guid and class then spec, sure = ShownSpec(unit, class, guid) end
         local list = spec and SPECS[spec] or nil
         if unit == "player" and not cfg.self then list = nil end
-        if rec.guid ~= guid or rec.spec ~= spec or rec.class ~= class or not list then
+        -- the talents read by the inspection change which crowd control the member has: fill again when they arrive
+        local tal = (guid and talentsByGUID[guid] ~= nil) or false
+        if rec.guid ~= guid or rec.spec ~= spec or rec.class ~= class or not list or rec.tal ~= tal then
+            rec.tal = tal
             if #rec.items > 0 then ns.Log.Seen("party:rebuild", rec.guid ~= guid and "member" or "spec") end
             Release(rec)
             rec.guid, rec.spec, rec.class, rec.sure = guid, spec, class, sure
@@ -659,8 +782,10 @@ function Party.Build()
         end
         rec.sure = sure
         stats.items = stats.items + #rec.items
+        for _, t in ipairs(rec.items) do if t.cc then stats.cc = stats.cc + 1 end end
         Place(rec)
     end
+    AimPlates()
     AimZones()
     Party.ExactAll()
     if #changed > 0 then ns.Log.Event("build " .. table.concat(changed, " | ") .. " " .. date("%H:%M:%S")) end
@@ -682,11 +807,59 @@ end
 -- Specialization of teammates: inspect, one at a time, out of combat, until every one is known
 --------------------------------------------------------------------------------
 local inspecting, retry
+local talentTries = {}    -- [guid] = inspections that gave no talents (at most 3, then the member stays without them)
+local function NeedsInspect(rec)
+    if not (rec and rec.guid) then return false end
+    if not rec.sure then return true end
+    return talentsByGUID[rec.guid] == nil and (talentTries[rec.guid] or 0) < 3
+end
+
+-- The talents of the unit just inspected: every spell an active entry of its trees teaches (C_Traits on the inspection's
+-- config, Constants.TraitConsts.INSPECT_TRAIT_CONFIG_ID; the technique of the party-cooldown trackers). Plain values only.
+local function ReadTalents(guid)
+    local T = C_Traits
+    local consts = Constants and Constants.TraitConsts
+    local config = consts and consts.INSPECT_TRAIT_CONFIG_ID or -1
+    if not (T and T.GetConfigInfo and T.GetTreeNodes and T.GetNodeInfo and T.GetEntryInfo and T.GetDefinitionInfo) then
+        talentTries[guid] = 99        -- no API: never ask again for this member
+        return
+    end
+    local ok, out = pcall(function()
+        local info = T.GetConfigInfo(config)
+        local trees = type(info) == "table" and info.treeIDs
+        if type(trees) ~= "table" then return nil end
+        local got, n = {}, 0
+        for _, tree in ipairs(trees) do
+            for _, nodeID in ipairs(T.GetTreeNodes(tree) or {}) do
+                local node = T.GetNodeInfo(config, nodeID)
+                local act = type(node) == "table" and node.activeEntry
+                local rank = type(node) == "table" and node.activeRank
+                if type(act) == "table" and type(rank) == "number" and not issecretvalue(rank) and rank > 0
+                    and node.subTreeActive ~= false then
+                    local e = T.GetEntryInfo(config, act.entryID)
+                    local d = type(e) == "table" and e.definitionID and T.GetDefinitionInfo(e.definitionID)
+                    local spell = type(d) == "table" and d.spellID
+                    if type(spell) == "number" and not issecretvalue(spell) then got[spell] = true n = n + 1 end
+                end
+            end
+        end
+        return n > 0 and got or nil
+    end)
+    if ok and out then
+        talentsByGUID[guid] = out
+        stats.talentReads = stats.talentReads + 1
+    else
+        talentTries[guid] = (talentTries[guid] or 0) + 1
+        stats.talentFail = stats.talentFail + 1
+        if not ok then Fault("party:talents", out) end
+    end
+end
+
 local function InspectNext()
     if InCombatLockdown() or inspecting then return end
     for _, unit in ipairs(UNITS) do
         local rec = units[unit]
-        if unit ~= "player" and rec and rec.guid and not rec.sure then
+        if unit ~= "player" and NeedsInspect(rec) then
             if CanInspect(unit) then
                 inspecting = unit
                 NotifyInspect(unit)
@@ -701,7 +874,7 @@ local function InspectNext()
     -- someone out of reach: look again in a while
     for _, unit in ipairs(UNITS) do
         local rec = units[unit]
-        if unit ~= "player" and rec and rec.guid and not rec.sure and not retry then
+        if unit ~= "player" and NeedsInspect(rec) and not retry then
             retry = true
             C_Timer.After(5, function() retry = nil InspectNext() end)
             return
@@ -709,7 +882,9 @@ local function InspectNext()
     end
 end
 
-ns.On("INSPECT_READY", function()
+ns.On("INSPECT_READY", function(guid)
+    local unit = inspecting
+    if unit and type(guid) == "string" and not issecretvalue(guid) and UnitGUID(unit) == guid then ReadTalents(guid) end
     inspecting = nil
     if not InCombatLockdown() then Party.Build() end
     C_Timer.After(1, InspectNext)
@@ -724,6 +899,8 @@ ns.On("UNIT_AURA", function(unit)
     C_Timer.After(0.15, Party.ReadAll)  -- the container lays itself out on its next frame
 end)
 
+ns.On("NAME_PLATE_UNIT_ADDED", Party.PlateChanged)
+ns.On("NAME_PLATE_UNIT_REMOVED", Party.PlateChanged)
 ns.On("SPELL_UPDATE_COOLDOWN", Party.ExactAll)
 ns.On("SPELL_UPDATE_CHARGES", Party.ExactAll)
 
@@ -748,6 +925,10 @@ ns.On("TRAIT_CONFIG_UPDATED", function()
     Rebuild()
 end)
 ns.On("PLAYER_REGEN_ENABLED", function()
+    if ns.Log.enabled then
+        ns.Log.Event(("party cc icons=%d plateSensors=%d platesBeyond=%d talentReads=%d talentFail=%d errors=%d"):format(
+            stats.cc, stats.plateSensors, stats.platesBeyond, stats.talentReads, stats.talentFail, stats.errors))
+    end
     if pending then Party.Build() end
     InspectNext()
 end)
@@ -824,3 +1005,5 @@ Party.FrameFor = FrameFor
 function Party.radial() return radial end
 function Party.gap() return GAP end
 function Party.zones() return zone end
+function Party.plates() return plates end
+function Party.talents() return talentsByGUID end

@@ -38,6 +38,7 @@ Data\Sounds.lua
 Donate.lua
 Style.lua
 Data\Spells.lua
+Data\CrowdControl.lua
 Data\AlertSpells.lua
 Data\Dispellers.lua
 Cards.lua
