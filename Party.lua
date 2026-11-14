@@ -590,6 +590,8 @@ local function HasCC(rec, e, spec, isPlayer)
         return false
     end
     if not e.talent then return true end
+    -- (13/11) a talent elsewhere, a spell of this specialization (Thunderstorm for the Elemental): no talent to find
+    for _, s in ipairs(e.free or {}) do if s == spec then return true end end
     local known = rec.guid and talentsByGUID[rec.guid]
     if not known then return false end
     if known[e.id] then return true end

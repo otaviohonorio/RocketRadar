@@ -7,12 +7,13 @@
 -- spell; flat = seconds, pct = percent, one value per rank taken: the game's curve for each rank; flat first,
 -- then percent, as the game does; charges = extra charges). `dyn`: other spells shorten it as they are cast (hidden in a teammate): no recharge is claimed;
 -- `dynT`: the same, for a teammate with one of these talents (what shortens it happened in the fight).
+-- `free`: the specializations that have a talent ability without the talent (a spell of the specialization).
 local ADDON, ns = ...
 
 ns.PARTY_CC = {
     DEATHKNIGHT = {
         { id = 47481, cd = 90, ch = 1, marks = { 91800, 260563 }, specs = { 252 }, also = { 91800 } }, -- Gnaw / Mordisco
-        { id = 49576, cd = 25, ch = 1, marks = { 51399, 57603 }, dynT = { 276079 }, mods = { { t = 356367, charges = { 1 } } } }, -- Death Grip / Garra da Morte
+        { id = 49576, cd = 15, ch = 1, marks = { 51399, 57603 }, dynT = { 276079 }, mods = { { t = 356367, charges = { 1 } } } }, -- Death Grip / Garra da Morte
         { id = 91797, cd = 90, ch = 1, marks = { 91797 }, specs = { 252 } }, -- Monstrous Blow / Golpe Monstruoso
         { id = 91802, cd = 30, ch = 1, marks = { 91807 }, specs = { 252 }, kick = true }, -- Shambling Rush / Ímpeto Titubeante
         { id = 207167, cd = 60, ch = 1, marks = { 207167 }, talent = true }, -- Blinding Sleet / Saraivada Cegante
@@ -70,7 +71,7 @@ ns.PARTY_CC = {
         { id = 2094, cd = 120, ch = 1, marks = { 2094 }, talent = true, mods = { { t = 200733, pct = { -50 } }, { t = 256165, pct = { -25 } }, { t = 441415, pct = { -10 } } } }, -- Blind / Cegar
     },
     SHAMAN = {
-        { id = 51490, cd = 30, ch = 1, marks = { 51490 }, talent = true }, -- Thunderstorm / Tempestade Relampejante
+        { id = 51490, cd = 30, ch = 1, marks = { 51490 }, talent = true, free = { 262 } }, -- Thunderstorm / Tempestade Relampejante
         { id = 51514, cd = 30, ch = 1, marks = { 51514, 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, talent = true, also = { 210873, 211004, 211010, 211015, 269352, 277778, 277784, 309328 }, mods = { { t = 204268, flat = { -15 } } } }, -- Hex / Bagata
         { id = 192058, cd = 60, ch = 1, marks = { 118905 }, talent = true, dynT = { 445027 }, mods = { { t = 265046, flat = { -10, -20 } } } }, -- Capacitor Totem / Totem Capacitor
     },
