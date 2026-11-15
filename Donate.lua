@@ -98,7 +98,7 @@ end
 --
 ns.REPORT = {
     { name = "GitHub", url = "https://github.com/otaviohonorio/RocketRadar/issues" },
-    { name = "CurseForge", url = "https://www.curseforge.com/wow/addons/rocket-radar-interrupts-threat-party-cooldowns/comments" },   -- project 1808411 (15/11; 1783002 was deleted)
+    { name = "CurseForge", url = "https://www.curseforge.com/wow/addons/rocket-radar-interrupts-cwd-threat-party-cooldowns/comments" },   -- project 1808411 (15/11; 1783002 was deleted)
 }
 -- (09/11) The project was deleted on 05/11 but still opened for editing; 0.1.3 goes back to it.
 
