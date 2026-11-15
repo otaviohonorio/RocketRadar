@@ -58,8 +58,6 @@ L["Choose the spells"] = "Escolher as magias"
 L["Which spells each specialization shows. Everything is checked at first."] =
     "Quais magias cada especialização mostra. De início, todas vêm marcadas."
 L["Spells of the group"] = "Magias do grupo"
-L["Automatic screenshots: on."] = "Prints automáticos: ligados."
-L["Automatic screenshots: off."] = "Prints automáticos: desligados."
 L["Minimap button"] = "Botão no minimapa"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "O botão abre esta janela com um clique. O balão dele mostra para quem as marcas são desenhadas."
@@ -213,7 +211,7 @@ L["no dispel type"] = "sem tipo de dispel"
 L["free it"] = "libertar"
 L["Frees a teammate:"] = "Liberta um aliado:"
 L["Frees only themselves:"] = "Liberta só a si mesmo:"
-L["Without the talent, the class does not have the spell. The icon uses the game's crowd control filter: a stun or a fear without a type can show in it too."] = "Sem o talento, a classe não tem a magia. O ícone usa o filtro de controle de grupo do jogo: um atordoamento ou um medo sem tipo também pode aparecer nele."
+L["Without the talent, the class does not have the spell. The icon uses the game's crowd control filter: a stun or a fear without a type can show in it too."] = "Sem o talento, a classe não tem a magia. O ícone usa o filtro de controle coletivo do jogo: um atordoamento ou um medo sem tipo também pode aparecer nele."
 L["The border's colour for it. At first, a light blue: the game has no colour for it."] = "A cor da borda dele. De início, um azul claro: o jogo não tem cor para ele."
 L["No class removes it: a boss's or a mechanic's debuff. Defensive and heal."] =
     "Nenhuma classe remove: é penalidade de chefe ou de mecânica. Defensivo e cura."

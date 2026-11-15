@@ -61,8 +61,6 @@ L["Choose the spells"] = "Choisir les sorts"
 L["Which spells each specialization shows. Everything is checked at first."] =
     "Les sorts que chaque spécialisation affiche. Au départ, tout est coché."
 L["Spells of the group"] = "Sorts du groupe"
-L["Automatic screenshots: on."] = "Captures d'écran automatiques : activées."
-L["Automatic screenshots: off."] = "Captures d'écran automatiques : désactivées."
 L["Minimap button"] = "Bouton de la minicarte"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "Un clic sur le bouton ouvre cette fenêtre. Son infobulle indique pour qui les marques sont dessinées."

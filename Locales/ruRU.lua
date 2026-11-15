@@ -61,8 +61,6 @@ L["Choose the spells"] = "Выбрать заклинания"
 L["Which spells each specialization shows. Everything is checked at first."] =
     "Какие заклинания показывает каждая специализация. Сначала отмечены все."
 L["Spells of the group"] = "Заклинания группы"
-L["Automatic screenshots: on."] = "Автоматические снимки экрана: вкл."
-L["Automatic screenshots: off."] = "Автоматические снимки экрана: откл."
 L["Minimap button"] = "Кнопка у мини-карты"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "Кнопка открывает это окно щелчком. Её подсказка показывает, для кого рисуются метки."

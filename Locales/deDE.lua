@@ -62,8 +62,6 @@ L["Choose the spells"] = "Zauber auswählen"
 L["Which spells each specialization shows. Everything is checked at first."] =
     "Welche Zauber jede Spezialisierung zeigt. Anfangs ist alles ausgewählt."
 L["Spells of the group"] = "Zauber der Gruppe"
-L["Automatic screenshots: on."] = "Automatische Screenshots: an."
-L["Automatic screenshots: off."] = "Automatische Screenshots: aus."
 L["Minimap button"] = "Minikartensymbol"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "Ein Klick auf das Symbol öffnet dieses Fenster. Sein Tooltip zeigt, für wen die Markierungen gezeichnet werden."

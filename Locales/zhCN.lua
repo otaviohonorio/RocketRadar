@@ -54,8 +54,6 @@ L["After this many, a new row starts; the block stays centred on the frame."] = 
 L["Choose the spells"] = "选择法术"
 L["Which spells each specialization shows. Everything is checked at first."] = "每个专精显示哪些法术。默认全部勾选。"
 L["Spells of the group"] = "小队法术"
-L["Automatic screenshots: on."] = "自动截图：开启。"
-L["Automatic screenshots: off."] = "自动截图：关闭。"
 L["Minimap button"] = "微缩地图按钮"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "点击按钮打开此窗口。它的提示中显示标记是为谁绘制的。"

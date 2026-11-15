@@ -56,8 +56,6 @@ L["After this many, a new row starts; the block stays centred on the frame."] =
 L["Choose the spells"] = "주문 고르기"
 L["Which spells each specialization shows. Everything is checked at first."] = "각 전문화에서 표시할 주문입니다. 처음에는 모두 선택되어 있습니다."
 L["Spells of the group"] = "파티 주문"
-L["Automatic screenshots: on."] = "자동 스크린샷: 켜짐."
-L["Automatic screenshots: off."] = "자동 스크린샷: 꺼짐."
 L["Minimap button"] = "미니맵 버튼"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "버튼을 클릭하면 이 창이 열립니다. 툴팁에는 표시가 누구 기준으로 그려지는지 나옵니다."

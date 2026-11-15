@@ -61,8 +61,6 @@ L["Choose the spells"] = "Scegli gli incantesimi"
 L["Which spells each specialization shows. Everything is checked at first."] =
     "Quali incantesimi mostra ogni specializzazione. All'inizio è tutto selezionato."
 L["Spells of the group"] = "Incantesimi del gruppo"
-L["Automatic screenshots: on."] = "Schermate automatiche: attive."
-L["Automatic screenshots: off."] = "Schermate automatiche: disattivate."
 L["Minimap button"] = "Pulsante della minimappa"
 L["The button opens this window with a click. Its tooltip shows who the markers are drawn for."] =
     "Il pulsante apre questa finestra con un clic. La sua descrizione mostra per chi vengono disegnati gli indicatori."

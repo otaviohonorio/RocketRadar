@@ -1022,33 +1022,9 @@ if compact and compact.RefreshMembers then
 end
 
 --------------------------------------------------------------------------------
--- Ground truth for the diary (development): the icon's alpha cannot be read back (GetAlpha is
--- secret once the alpha came from a secret). A tracked cast that arrives readable (always for the
--- player) is written down, and -- only when asked with `/rr shots` -- a screenshot is taken a moment later to check
--- the icon afterwards. (03/11/2026) OFF BY DEFAULT: the user saw the game's "Screen captured" pop up out of nowhere;
--- the second shot (half the recharge) also skipped the cap and the gap.
+-- Ground truth for the diary (development): a tracked cast that arrives readable (always for the player) is written
+-- down, to compare with the icon in the game.
 --------------------------------------------------------------------------------
-local SHOT_DELAY, SHOT_GAP, SHOT_MAX = 1.0, 5, 40
-local shots, lastShot = 0, -100
-local function Shot(tag)
-    if not (ns.db and ns.db.devShots == true) then return end
-    local now = GetTime()
-    if shots >= SHOT_MAX or now - lastShot < SHOT_GAP then return end
-    shots, lastShot = shots + 1, now
-    C_Timer.After(SHOT_DELAY, function()
-        -- the game's "Screen captured" (ActionStatus, Blizzard_ActionStatus) stays quiet for OUR shot only: it stops
-        -- hearing the capture for a second; the player's own Print Screen still shows it (user, 03/11: "não tem como
-        -- esconder isso?")
-        local status = _G.ActionStatus
-        local quiet = status and status.UnregisterEvent and status:IsEventRegistered("SCREENSHOT_SUCCEEDED")
-        if quiet then status:UnregisterEvent("SCREENSHOT_SUCCEEDED") end
-        local ok, err = pcall(Screenshot)
-        if quiet then C_Timer.After(1, function() status:RegisterEvent("SCREENSHOT_SUCCEEDED") end) end
-        ns.Log.Event(("shot %s ok=%s %s"):format(tag, tostring(ok), date("%H:%M:%S")))
-        if not ok then ns.Log.Error("party:shot", err) end
-    end)
-end
-
 ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
     if not ns.Log.enabled then return end
     if type(unit) ~= "string" or issecretvalue(unit) or not TRACKED[unit] then return end
@@ -1063,11 +1039,6 @@ ns.On("UNIT_SPELLCAST_SUCCEEDED", function(unit, _, spellID)
             local who = UnitName(unit)
             ns.Log.Event(("cast %s %s %d combat=%s %s"):format(unit, issecretvalue(who) and "?" or tostring(who),
                 spellID, tostring(InCombatLockdown()), date("%H:%M:%S")))
-            Shot(unit .. ":" .. spellID)
-            -- a second shot when the recharge should be half gone, to check the veil
-            C_Timer.After(math.max(0, math.min(t.cd / 2, 60) - SHOT_DELAY), function()
-                Shot("half " .. unit .. ":" .. spellID)   -- the same switch, cap and gap as the first
-            end)
             return
         end
     end
