@@ -4,7 +4,7 @@
 ## Notes-ptBR: Soma às placas do próprio jogo, sem trocá-las: o que interromper, à frente da pilha, e com quem está cada mob.
 ## Author: Otto Rocket (Otávio Honório)
 ## Version: 0.1.3
-## X-Curse-Project-ID: 1783002
+## X-Curse-Project-ID: 1808411
 #@non-debug@
 # ## SavedVariables: RocketRadarDB
 #@end-non-debug@
