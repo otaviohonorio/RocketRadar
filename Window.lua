@@ -42,12 +42,12 @@ local function Check(f, c, y, key, label, tip, after, default)
 end
 
 local function Choice(f, c, y, key, label, tip, values, after)
-    return (S.Dropdown(f, c.x, y, c.col, CW, label, tip, values,
+    return S.Dropdown(f, c.x, y, c.col, CW, label, tip, values,
         function() return ns.db[key] end,
         function(v)
             ns.db[key] = v
             if after then after() end
-        end))
+        end)
 end
 
 local function Slider(f, c, y, key, label, tip, min, max, step, default, after)
@@ -281,8 +281,10 @@ end
 -- user's print, 04/11). Type 129 of 150; what it is 150 of 176 ("de chefe ou de mecânica"); what to do 100 of 144.
 -- Every header has air before the next one: "Ligado" 34 in 46, "Ícone" 27 in 44, "Sigla" 25 in 42.
 local P = { on = 0, icon = 46, letters = 90, type = 132, what = 300, who = 482, color = 632, info = 672 }
-local A = { icon = 0, type = 34, alert = 196, sound = 322, listen = 462 }
-local ALERT_W, SOUND_W = 116, 132
+local A = { icon = 0, type = 34, alert = 196, sound = 332, listen = 572 }
+-- (16/11) the sound list as wide as its longest name in every language (frFR "Magie : incantation arcanique": the
+-- English capture showed 'Voice: "Disea...' cut at 132); tools/radar_textos.py measures it against SOUND_W
+local ALERT_W, SOUND_W = 126, 232
 local CAST_KINDS = { cast = true, channel = true, locked = true }
 
 local function Header(f, x, y, dx, text)
@@ -633,7 +635,8 @@ local function AlertsTab(f)
     local x = X0
     local y = Section(f, { x = x, width = FULL_W }, Example(f, "Alerts"), L["Alerts on the screen"])
     Cell(f, x, y, 0, A.alert - 6, "GameFontHighlight", L["Alerts: all"])
-    Choice(f, { x = x, col = x + A.alert }, y, "__alertsAll", "", L["Sets the alert of every row at once. The casts take \"On you\" (the game tells whom a cast goes to only for you)."], {
+    -- an action, not a setting: nothing stays chosen, so it shows the game's "Choose" (it was blank, 16/11)
+    local _, all = Choice(f, { x = x, col = x + A.alert }, y, "__alertsAll", "", L["Sets the alert of every row at once. The casts take \"On you\" (the game tells whom a cast goes to only for you)."], {
         { value = "off", text = L["Off"] }, { value = "me", text = L["On you"] }, { value = "group", text = L["Whole group"] },
     }, function()
         local v = ns.db.__alertsAll
@@ -643,6 +646,7 @@ local function AlertsTab(f)
         end
         Look()
     end)
+    if all and all.SetDefaultText then all:SetDefaultText(rawget(_G, "CHOOSE") or "Choose") end
     y = y - S.ROW
     Cell(f, x, y, 0, A.alert - 6, "GameFontHighlight", L["Sound channel"])
     Choice(f, { x = x, col = x + A.alert }, y, "alertChannel", "", L["The game's volume the alerts' sounds follow."], CHANNELS,
