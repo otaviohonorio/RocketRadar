@@ -57,64 +57,65 @@ ns.PARTY_SPELLS = {
     [1311015] = { auras = { 1311015 }, gate = true }, -- Templar's Bulwark / Baluarte do Templário
 }
 
--- [spec] = { { cast, recharge (s), charges }, ... } in the order shown (the highest rank)
+-- [spec] = { { cast, recharge (s), charges, ranks = every rank lowest first, lvl = the level each
+-- rank is learned at }, ... } in the order shown (the cast: the highest rank)
 ns.PARTY_SPECS = {
     [1491] = { -- WARRIOR
-        { 871, 900, 1 }, -- Shield Wall / Muralha de Escudos
-        { 1719, 1800, 1 }, -- Recklessness / Temeridade
-        { 20230, 900, 1 }, -- Retaliation / Retaliação
-        { 12975, 180, 1 }, -- Last Stand / Último Recurso
-        { 12328, 180, 1 }, -- Death Wish / Desejo de Matar
+        { 871, 900, 1, ranks = { 871 }, lvl = { 28 } }, -- Shield Wall / Muralha de Escudos
+        { 1719, 1800, 1, ranks = { 1719 }, lvl = { 50 } }, -- Recklessness / Temeridade
+        { 20230, 900, 1, ranks = { 20230 }, lvl = { 20 } }, -- Retaliation / Retaliação
+        { 12975, 180, 1, ranks = { 12975 }, lvl = { 1 } }, -- Last Stand / Último Recurso
+        { 12328, 180, 1, ranks = { 12328 }, lvl = { 1 } }, -- Death Wish / Desejo de Matar
     },
     [1486] = { -- PALADIN
-        { 1020, 300, 1 }, -- Divine Shield / Escudo Divino
-        { 5573, 300, 1 }, -- Divine Protection / Proteção Divina
-        { 10278, 300, 1 }, -- Blessing of Protection / Bênção de Proteção
-        { 20216, 120, 1 }, -- Divine Favor / Favorecimento Divino
-        { 1311015, 300, 1 }, -- Templar's Bulwark / Baluarte do Templário
-        { 1310897, 180, 1 }, -- Voice of Truth / Voz da Verdade
+        { 1020, 300, 1, ranks = { 642, 1020 }, lvl = { 34, 50 } }, -- Divine Shield / Escudo Divino
+        { 5573, 300, 1, ranks = { 498, 5573 }, lvl = { 6, 18 } }, -- Divine Protection / Proteção Divina
+        { 10278, 300, 1, ranks = { 1022, 5599, 10278 }, lvl = { 10, 24, 38 } }, -- Blessing of Protection / Bênção de Proteção
+        { 20216, 120, 1, ranks = { 20216 }, lvl = { 0 } }, -- Divine Favor / Favorecimento Divino
+        { 1311015, 300, 1, ranks = { 1311015 }, lvl = { 0 } }, -- Templar's Bulwark / Baluarte do Templário
+        { 1310897, 180, 1, ranks = { 1310897 }, lvl = { 20 } }, -- Voice of Truth / Voz da Verdade
     },
     [1485] = { -- HUNTER
-        { 19574, 120, 1 }, -- Bestial Wrath / Ira Bestial
-        { 3045, 300, 1 }, -- Rapid Fire / Tiro Rápido
-        { 19263, 300, 1 }, -- Deterrence / Coibição
+        { 19574, 120, 1, ranks = { 19574 }, lvl = { 40 } }, -- Bestial Wrath / Ira Bestial
+        { 3045, 300, 1, ranks = { 3045 }, lvl = { 26 } }, -- Rapid Fire / Tiro Rápido
+        { 19263, 300, 1, ranks = { 19263 }, lvl = { 20 } }, -- Deterrence / Coibição
     },
     [1488] = { -- ROGUE
-        { 5277, 300, 1 }, -- Evasion / Evasão
-        { 1857, 300, 1 }, -- Vanish / Sumir
-        { 13750, 300, 1 }, -- Adrenaline Rush / Adrenalina
-        { 13877, 120, 1 }, -- Blade Flurry / Rajada de Lâminas
-        { 14177, 180, 1 }, -- Cold Blood / Sangue Frio
+        { 5277, 300, 1, ranks = { 5277 }, lvl = { 8 } }, -- Evasion / Evasão
+        { 1857, 300, 1, ranks = { 1856, 1857 }, lvl = { 22, 42 } }, -- Vanish / Sumir
+        { 13750, 300, 1, ranks = { 13750 }, lvl = { 0 } }, -- Adrenaline Rush / Adrenalina
+        { 13877, 120, 1, ranks = { 13877 }, lvl = { 1 } }, -- Blade Flurry / Rajada de Lâminas
+        { 14177, 180, 1, ranks = { 14177 }, lvl = { 0 } }, -- Cold Blood / Sangue Frio
     },
     [1487] = { -- PRIEST
-        { 10060, 180, 1 }, -- Power Infusion / Infusão de Poder
-        { 14751, 180, 1 }, -- Inner Focus / Concentração Interior
-        { 1277640, 600, 1 }, -- Contingency Plan / Plano de Contingência
-        { 6346, 180, 1 }, -- Fear Ward / Proteção contra Medo
+        { 10060, 180, 1, ranks = { 10060 }, lvl = { 40 } }, -- Power Infusion / Infusão de Poder
+        { 14751, 180, 1, ranks = { 14751 }, lvl = { 0 } }, -- Inner Focus / Concentração Interior
+        { 1277640, 600, 1, ranks = { 1277462, 1277634, 1277638, 1277639, 1277640 }, lvl = { 20, 30, 40, 50, 60 } }, -- Contingency Plan / Plano de Contingência
+        { 6346, 180, 1, ranks = { 6346 }, lvl = { 20 } }, -- Fear Ward / Proteção contra Medo
     },
     [1489] = { -- SHAMAN
-        { 16188, 180, 1 }, -- Nature's Swiftness / Rapidez da Natureza
-        { 16166, 180, 1 }, -- Lightning Mastery / Maestria em Raio
-        { 425336, 180, 1 }, -- Rage of the Farseer / Fúria do Clarividente
+        { 16188, 180, 1, ranks = { 16188 }, lvl = { 1 } }, -- Nature's Swiftness / Rapidez da Natureza
+        { 16166, 180, 1, ranks = { 16166 }, lvl = { 1 } }, -- Lightning Mastery / Maestria em Raio
+        { 425336, 180, 1, ranks = { 425336 }, lvl = { 1 } }, -- Rage of the Farseer / Fúria do Clarividente
     },
     [1482] = { -- MAGE
-        { 11958, 300, 1 }, -- Ice Block / Bloco de Gelo
-        { 12042, 180, 1 }, -- Arcane Power / Poder Arcano
-        { 11129, 180, 1 }, -- Combustion / Combustão
-        { 12043, 180, 1 }, -- Presence of Mind / Presença de Espírito
-        { 12051, 480, 1 }, -- Evocation / Evocação
+        { 11958, 300, 1, ranks = { 11958 }, lvl = { 4 } }, -- Ice Block / Bloco de Gelo
+        { 12042, 180, 1, ranks = { 12042 }, lvl = { 1 } }, -- Arcane Power / Poder Arcano
+        { 11129, 180, 1, ranks = { 11129 }, lvl = { 40 } }, -- Combustion / Combustão
+        { 12043, 180, 1, ranks = { 12043 }, lvl = { 1 } }, -- Presence of Mind / Presença de Espírito
+        { 12051, 480, 1, ranks = { 12051 }, lvl = { 20 } }, -- Evocation / Evocação
     },
     [1490] = { -- WARLOCK
-        { 18288, 180, 1 }, -- Amplify Curse / Amplificar Maldição
-        { 18708, 300, 1 }, -- Fel Domination / Dominância Vil
+        { 18288, 180, 1, ranks = { 18288 }, lvl = { 0 } }, -- Amplify Curse / Amplificar Maldição
+        { 18708, 300, 1, ranks = { 18708 }, lvl = { 0 } }, -- Fel Domination / Dominância Vil
     },
     [1484] = { -- DRUID
-        { 22812, 60, 1 }, -- Barkskin / Pele de Árvore
-        { 29166, 360, 1 }, -- Innervate / Avivar
-        { 9863, 300, 1 }, -- Tranquility / Tranquilidade
-        { 22842, 180, 1 }, -- Frenzied Regeneration / Regeneração Frenética
-        { 17116, 180, 1 }, -- Nature's Swiftness / Rapidez da Natureza
-        { 417141, 180, 1 }, -- Berserk / Berserk
+        { 22812, 60, 1, ranks = { 22812 }, lvl = { 44 } }, -- Barkskin / Pele de Árvore
+        { 29166, 360, 1, ranks = { 29166 }, lvl = { 40 } }, -- Innervate / Avivar
+        { 9863, 300, 1, ranks = { 740, 8918, 9862, 9863 }, lvl = { 30, 40, 50, 60 } }, -- Tranquility / Tranquilidade
+        { 22842, 180, 1, ranks = { 22842 }, lvl = { 36 } }, -- Frenzied Regeneration / Regeneração Frenética
+        { 17116, 180, 1, ranks = { 17116 }, lvl = { 1 } }, -- Nature's Swiftness / Rapidez da Natureza
+        { 417141, 180, 1, ranks = { 417141 }, lvl = { 1 } }, -- Berserk / Berserk
     },
 }
 

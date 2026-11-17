@@ -478,6 +478,12 @@ local function Known(id)
     return ok and yes == true
 end
 
+-- (16/11) a member's level (the WoW Forever's spells are learned by level); nil when the game does not say
+local function UnitLvl(unit)
+    local ok, l = pcall(UnitLevel, unit)
+    if ok and type(l) == "number" and not issecretvalue(l) and l > 0 then return l end
+end
+
 -- The icon to show: the talent that replaces the spell (Sentinel for the Protection Paladin's Avenging Wrath).
 local function Face(id, sp, spec, isPlayer)
     if isPlayer then
@@ -589,6 +595,11 @@ local function HasCC(rec, e, spec, isPlayer)
         for _, a in ipairs(e.also or {}) do if Known(a) then return true end end
         return false
     end
+    -- (16/11) the WoW Forever: a teammate below the level of the lowest rank does not have it yet
+    if e.lvl then
+        local lv = UnitLvl(rec.unit)
+        if lv and lv < e.lvl then return false end
+    end
     if not e.talent then return true end
     -- (13/11) a talent elsewhere, a spell of this specialization (Thunderstorm for the Elemental): no talent to find
     for _, s in ipairs(e.free or {}) do if s == spec then return true end end
@@ -618,6 +629,38 @@ function Party.CCCooldown(e, known, spec)
     return math.max(1, math.floor((e.cd + flat) * (1 + pct / 100) + 0.5)), (e.ch or 1) + extra
 end
 
+-- (16/11) THE WOW FOREVER: a spell has ranks, each its own id, learned at a level (Data/Forever/Spells.lua `ranks`,
+-- `lvl`). The user, a low-level Druid: "tá aparecendo tranquilidade, pele de arvore, regeneração e etc, que nem tenho
+-- ainda". The player: the highest rank the spellbook knows, none = no icon. A teammate: the highest rank their level
+-- allows (their level is not known: the entry's own cast, as before). The entry without `ranks` (the retail) is its cast.
+---Returns the rank to follow and its index in `entry.ranks`, or nil when the member does not have the spell yet.
+function Party.Rank(entry, unit, isPlayer)
+    local ranks = entry.ranks
+    if not ranks then return entry[1] end
+    if isPlayer then
+        for i = #ranks, 1, -1 do if Known(ranks[i]) then return ranks[i], i end end
+        return nil
+    end
+    local lv = UnitLvl(unit)
+    if not lv then return entry[1], #ranks end
+    for i = #ranks, 1, -1 do
+        if (entry.lvl and entry.lvl[i] or 0) <= lv then return ranks[i], i end
+    end
+    return nil
+end
+
+---The spell's data for a rank: a lower rank may be cast too, so the sensor watches the auras of every rank up to it.
+local function RankedSpell(entry, n, sp)
+    if not (entry.ranks and n and n > 1) then return sp end
+    local aur, seen = {}, {}
+    for j = 1, n do
+        for _, a in ipairs((SPELLS[entry.ranks[j]] or {}).auras or {}) do
+            if not seen[a] then seen[a] = true aur[#aur + 1] = a end
+        end
+    end
+    return setmetatable({ auras = aur }, { __index = sp })
+end
+
 local function Fill(rec, list, spec)
     local isPlayer = rec.unit == "player"
     local off = Cfg().off
@@ -626,10 +669,12 @@ local function Fill(rec, list, spec)
     -- One icon per spell shown: the first entry that shows it keeps it.
     local shown = {}
     for _, entry in ipairs(list) do
-        local id, cd, ch = entry[1], entry[2], entry[3]
-        local sp = SPELLS[id]
-        local wanted = sp and not (sp.own and not isPlayer) and not off[Party.OffKey(spec, id)]
+        local key, cd, ch = entry[1], entry[2], entry[3]
+        local id, n = Party.Rank(entry, rec.unit, isPlayer)
+        local sp = id and SPELLS[id]
+        local wanted = sp and not (sp.own and not isPlayer) and not off[Party.OffKey(spec, key)]
         if wanted and isPlayer and sp.gate then wanted = Known(id) or (sp.show and Known(sp.show)) end
+        if wanted then sp = RankedSpell(entry, n, sp) end
         local face = wanted and Face(id, sp, spec, isPlayer)
         if wanted and shown[face] then
             wanted = false
