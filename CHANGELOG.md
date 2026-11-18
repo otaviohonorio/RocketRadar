@@ -1,3 +1,3 @@
-# Rocket Radar 0.3.1
+# Rocket Radar 0.3.2
 
-- WoW Forever: a defensive or cooldown shows only once you (or a party member, by their level) have learned it, and a party member's lower rank of a spell now lights its icon too.
+- Fixed: WoW Forever's experience bonus (Boosted Rest) showed on the right of a party member as if it were a debuff. It, Recently Bandaged and Forbearance never show there: nobody removes them and nobody has to react.

@@ -150,10 +150,31 @@ local function TypesOn()
     return on, all
 end
 
+-- (18/11) AURAS THE GAME FILES AS DEBUFFS THAT ASK NOTHING OF ANYONE: nobody removes them and nobody reacts to them, so
+-- they never take the right side (the rule of the frame: the cast and the penalties to act on). Seen on the user's
+-- party in WoW Forever (the Radar's diary, ids in the boss group, and the print "Esse ai do lado direito não precisa
+-- ter"): Boosted Rest, Forever's experience bonus (filed harmful AND as a boss/role aura); Recently Bandaged and
+-- Forbearance, the lockouts of a bandage and of a paladin's blessing -- the same kind of noise the game's own
+-- AuraContainerUtil names (Exhaustion, Sated). The game applies an exclusion by id on a friend's debuff only for an aura
+-- marked never-secret (AuraContainerUtil.CanApplyIdentityCandidateFilters); these are read by id in the diary, so
+-- they are not secret.
+Debuffs.NOT_ALERT = {
+    [1229451] = true,   -- Boosted Rest (Descanso Melhorado), WoW Forever
+    [11196] = true,     -- Recently Bandaged (Tratado Recentemente)
+    [25771] = true,     -- Forbearance (Abstinência)
+}
+
+---The candidate filters with the auras that are never an alert left out.
+function Debuffs.Candidates(t)
+    t = t or {}
+    t.excludeSpellIDs = Debuffs.NOT_ALERT
+    return t
+end
+
 local function MineCandidates()
     local on, all = TypesOn()
-    if all then return {} end
-    return { includeDispelTypes = on }
+    if all then return Debuffs.Candidates({}) end
+    return Debuffs.Candidates({ includeDispelTypes = on })
 end
 
 local function ColorMap()
@@ -348,12 +369,12 @@ local function Attach(owner, unit)
             initializeFrame = Initialize(rec, nil), layout = Layout(1, true),
         })
         c:AddAuraGroup(MOVE, Debuffs.MOVE_FILTER, {
-            maxFrameCount = MAX_MOVE,
+            maxFrameCount = MAX_MOVE, candidateFilters = Debuffs.Candidates(),
             sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
             initializeFrame = Initialize(rec, "move"), layout = Layout(2, false),
         })
         c:AddAuraGroup(BOSS, Debuffs.BossFilter(), {
-            maxFrameCount = MAX_BOSS, candidateFilters = { isBossOrRoleAura = true },
+            maxFrameCount = MAX_BOSS, candidateFilters = Debuffs.Candidates({ isBossOrRoleAura = true }),
             sortMethod = AuraContainerSortMethod.UnitFrameDebuff,
             initializeFrame = Initialize(rec, "boss"), layout = Layout(3, false),
         })
