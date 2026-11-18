@@ -17,10 +17,10 @@ local COL_W = 420            -- the two columns of the General and Party tabs
 local COL2 = X0 + COL_W + 24
 local NAME = 200             -- from a column's left to its controls (the longest name in ptBR, 178, measured 03/11 with frizqt__.ttf)
 local CW = 170               -- the controls' width
--- (04/11) the content starts under the round portrait with the logo, in the top-left corner of every main window of the
--- family (the user: "nossos addons tem o icone na janela principal com o icone redondo no canto superior esquerdo, tem
--- que por em todos"); the portrait reaches about 58 down
-local TOP = -62
+-- (18/11) THE MODERN ROCKET IDENTITY (the user approved mockup/PREVIA Identidade Rocket - Rocket Radar.png): the header
+-- with the seal (Style.Window, Style.HEAD = 58), the tabs as a segmented row on top under it, the content under them
+local TABS_Y = -(S.HEAD + 20)
+local TOP = TABS_Y - 24 - 14
 
 local window
 
@@ -483,6 +483,7 @@ local function DebuffRow(f, x, y, row)
     local on = CreateFrame("CheckButton", nil, f, "MinimalCheckboxTemplate")
     on:SetSize(30, 29)
     on:SetPoint("TOPLEFT", f, "TOPLEFT", x + P.on, y + 1)
+    S.SkinCheck(on)
     on:SetChecked(RowOn(row))
     on:SetScript("OnClick", function(self) SetRowOn(row, self:GetChecked() and true or false) Look() end)
     Tip(on, row.name, L["Whether it shows beside the party frame."])
@@ -536,6 +537,7 @@ local function AlertRow(f, x, y, row)
     local alert = CreateFrame("DropdownButton", nil, f, "WowStyle1DropdownTemplate")
     alert:SetPoint("TOPLEFT", f, "TOPLEFT", x + A.alert, y)
     alert:SetWidth(ALERT_W)
+    S.SkinDropdown(alert)
     alert:SetupMenu(function(_, root)
         for _, v in ipairs(AlertModes(row)) do
             root:CreateRadio(v.text, function() return ns.Alerts.Mode(row.kind) == v.value end,
@@ -558,6 +560,7 @@ local function AlertRow(f, x, y, row)
     local sound = CreateFrame("DropdownButton", nil, f, "WowStyle1DropdownTemplate")
     sound:SetPoint("TOPLEFT", f, "TOPLEFT", x + A.sound, y)
     sound:SetWidth(SOUND_W)
+    S.SkinDropdown(sound)
     sound:SetupMenu(function(_, root)
         if root.SetScrollMode then root:SetScrollMode(360) end
         for _, s in ipairs(ns.ALERT_SOUNDS) do
@@ -606,6 +609,7 @@ local function DebuffsTab(f)
     local all = CreateFrame("CheckButton", nil, f, "MinimalCheckboxTemplate")
     all:SetSize(30, 29)
     all:SetPoint("TOPLEFT", f, "TOPLEFT", x + P.on, y + 1)
+    S.SkinCheck(all)
     all:SetChecked(true)
     Cell(f, x, y, P.on + 34, 140, "GameFontHighlight", L["Turn all on"])
     all:SetScript("OnClick", function(self)
@@ -664,8 +668,6 @@ end
 
 local function Build()
     local f = CreateFrame("Frame", "RocketRadarWindow", UIParent, "ButtonFrameTemplate")
-    f:SetTitle(ns.TITLE)
-    if f.SetPortraitToAsset then f:SetPortraitToAsset(ns.LOGO) end   -- the family's round portrait (Rocket Mount, Swap)
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)
     f:SetPoint("CENTER")
@@ -675,8 +677,12 @@ local function Build()
     f:SetScript("OnDragStart", f.StartMoving)
     f:SetScript("OnDragStop", f.StopMovingOrSizing)
     tinsert(UISpecialFrames, "RocketRadarWindow")
+    -- (18/11) the modern identity: our panel, the body stone, the seal with ns.TITLE and the subtitle (the game's own
+    -- word for the settings, so no translation of ours), the close X; Esc still closes it (UISpecialFrames)
+    f.head = S.Window(f, { subtitle = SETTINGS })
 
-    -- the tabs: one page each, the window as tall as the tallest page
+    -- the tabs: one page each, the window as tall as the tallest page; the segmented row on top (Style.Tabs) instead
+    -- of the game's tabs at the bottom
     local tabs = {
         { "general", rawget(_G, "GENERAL") or L["General"], GeneralTab },
         { "plates", L["Plates"], PlatesTab },
@@ -685,7 +691,8 @@ local function Build()
         { "debuffs", L["Debuffs"], DebuffsTab },
         { "alerts", L["Alerts"], AlertsTab },
     }
-    f.pages, f.tabs, f.heights = {}, {}, {}
+    f.pages, f.heights = {}, {}
+    local labels = {}
     local y = 0
     for i, t in ipairs(tabs) do
         local page = CreateFrame("Frame", nil, f)
@@ -693,26 +700,14 @@ local function Build()
         local yi = t[3](page)
         f.pages[t[1]], f.heights[i] = page, -yi
         y = math.min(y, yi)
-        local b = CreateFrame("Button", "RocketRadarWindowTab" .. i, f, "PanelTabButtonTemplate")
-        b:SetID(i)
-        b:SetText(t[2])
-        b:SetScript("OnClick", function() ns.SetWindowTab(t[1]) end)
-        if i == 1 then
-            b:SetPoint("TOPLEFT", f, "BOTTOMLEFT", 11, 2)
-        else
-            b:SetPoint("TOPLEFT", f.tabs[i - 1], "TOPRIGHT", 3, 0)
-        end
-        if PanelTemplates_TabResize then PanelTemplates_TabResize(b, 0) end
-        f.tabs[i], b.key = b, t[1]
+        labels[i] = t[2]
     end
-    if PanelTemplates_SetNumTabs then PanelTemplates_SetNumTabs(f, #f.tabs) end
+    f.tabRow = S.Tabs(f, X0 - 8, TABS_Y, labels, function(i) ns.SetWindowTab(tabs[i][1]) end)
+    f.tabs = f.tabRow.tabs
+    for i, b in ipairs(f.tabs) do b.key = tabs[i][1] end
 
     f.donate = ns.DonateFooter(f)
     f:SetSize(WIDTH, -y + 8 + ns.DONATE_ROW + 8)
-    f.Inset:ClearAllPoints()
-    f.Inset:SetPoint("TOPLEFT", 4, -60)
-    f.Inset:SetPoint("BOTTOMRIGHT", -6, ns.DONATE_ROW + 2)
-    S.Body(f, 1, f.Inset.Bg)
     f:Hide()
     window = f
     ns.SetWindowTab(ns.db.windowTab or "general")
@@ -725,7 +720,7 @@ function ns.SetWindowTab(key)
     if not window.pages[key] then key = "general" end
     for k, page in pairs(window.pages) do page:SetShown(k == key) end
     for i, b in ipairs(window.tabs) do
-        if b.key == key and PanelTemplates_SetTab then PanelTemplates_SetTab(window, i) end
+        if b.key == key then window.tabRow:Select(i) end
     end
     window.tab = key
     ns.db.windowTab = key

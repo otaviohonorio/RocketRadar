@@ -12,7 +12,9 @@ ns.PartyWindow = PW
 
 local COL_W, COL_GAP, MARGIN = 200, 14, 20
 local ROW_H, CHECK, ICON = 28, 26, 18
-local TOP = 70          -- below the title bar and the class dropdown
+-- (18/11) the modern identity: the header with the seal (Style.Window, Style.HEAD = 58), the class drop-down under it
+local CLASS_Y = ns.Style.HEAD + 14
+local TOP = CLASS_Y + 40   -- below the header and the class dropdown
 local window, classIndex
 local columns = {}
 
@@ -57,6 +59,7 @@ local function Row(col, i)
     if r then return r end
     r = CreateFrame("CheckButton", nil, col, "UICheckButtonTemplate")
     r:SetSize(CHECK, CHECK)
+    ns.Style.SkinCheck(r)
     r:SetPoint("TOPLEFT", col, "TOPLEFT", 0, -(30 + (i - 1) * ROW_H))
     r.icon = col:CreateTexture(nil, "ARTWORK")
     r.icon:SetSize(ICON, ICON)
@@ -158,8 +161,6 @@ end
 
 local function Build()
     local f = CreateFrame("Frame", "RocketRadarPartyWindow", UIParent, "ButtonFrameTemplate")
-    ButtonFrameTemplate_HidePortrait(f)
-    f:SetTitle(ns.TITLE .. " — " .. L["Spells of the group"])
     f:SetFrameStrata("DIALOG")
     f:SetToplevel(true)
     f:SetPoint("CENTER")
@@ -169,18 +170,18 @@ local function Build()
     f:SetScript("OnDragStart", f.StartMoving)
     f:SetScript("OnDragStop", f.StopMovingOrSizing)
     tinsert(UISpecialFrames, "RocketRadarPartyWindow")
-    f.Inset:ClearAllPoints()
-    f.Inset:SetPoint("TOPLEFT", 4, -26)
-    f.Inset:SetPoint("BOTTOMRIGHT", -6, ns.DONATE_ROW + 2)
+    -- (18/11) the modern identity: our panel, the body stone, the seal with ns.TITLE and the window's name as the
+    -- subtitle, the close X (Esc still closes it)
+    f.head = ns.Style.Window(f, { subtitle = L["Spells of the group"] })
     f.donate = ns.DonateFooter(f)
-    ns.Style.Body(f, 1, f.Inset.Bg)   -- the body art of every Rocket window (Style.lua)
 
     local label = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    label:SetPoint("TOPLEFT", f, "TOPLEFT", MARGIN, -40)
+    label:SetPoint("TOPLEFT", f, "TOPLEFT", MARGIN, -(CLASS_Y + 4))
     label:SetText(CLASS)
     local d = CreateFrame("DropdownButton", nil, f, "WowStyle1DropdownTemplate")
     d:SetPoint("LEFT", label, "RIGHT", 10, 0)
     d:SetWidth(200)
+    ns.Style.SkinDropdown(d)
     d:SetupMenu(function(_, root)
         for i, c in ipairs(Classes()) do
             local color = C_ClassColor.GetClassColor(c.file)

@@ -26,11 +26,13 @@ end
 
 local function Spell(id) return C_Spell.GetSpellTexture(id) end
 
--- The example box: the game's dark list inset behind it, the word "Example" in its corner.
+-- The example box: our dark card (the modern identity, 18/11: RocketCard.png, the same art as Style.Card, without its
+-- hover ring: nothing here is clicked), the word "Example" in its corner.
 function Ex.Box(parent, x, y, w, h)
-    local box = CreateFrame("Frame", nil, parent, "InsetFrameTemplate3")
+    local box = CreateFrame("Frame", nil, parent)
     box:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
     box:SetSize(w, h)
+    box.__bg = ns.Style.Slice(box, "RocketCard.png", 16, 0)
     local tag = Text(box, "GameFontNormalSmall", L["Example"])
     tag:SetPoint("TOPRIGHT", box, "TOPRIGHT", -8, -6)
     return box
