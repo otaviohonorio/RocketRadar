@@ -24,7 +24,11 @@ local function Text(parent, font, text, r, g, b)
     return t
 end
 
-local function Spell(id) return C_Spell.GetSpellTexture(id) end
+-- (18/11, the user's print in the Forever: the window stopped half-built) an example's spell can be missing (the alert
+-- lists are empty there): never ask the game about a nil id; the game's question-mark icon and no name instead
+local QUESTION = 134400
+local function Spell(id) return id and C_Spell.GetSpellTexture(id) or QUESTION end
+local function SpellName(id) return id and C_Spell.GetSpellName(id) or nil end
 
 -- The example box: our dark card (the modern identity, 18/11: RocketCard.png, the same art as Style.Card, without its
 -- hover ring: nothing here is clicked), the word "Example" in its corner.
@@ -77,14 +81,21 @@ end
 
 local function TypeColor(kind) return { ns.ColorOf("dispel." .. kind) } end
 -- a debuff of the season of that type (Data/AlertSpells.lua, the game's tables); the boss's uses a Bleed's look
+local FALLBACK = { Magic = { 118 }, Bleed = { 772 }, Curse = { 980 }, Poison = { 2818 }, None = { 772 } }
 local function FirstSpell(kind)
     local list = ns.ALERT_SPELLS and (ns.ALERT_SPELLS[kind] or ns.ALERT_SPELLS.Bleed)
-    if not list then return nil end
+    if not list or #list == 0 then
+        -- spells both games have (the Forever's alert lists are empty): the first one the game knows
+        for _, id in ipairs(FALLBACK[kind] or FALLBACK.Magic) do
+            if SpellName(id) then return id end
+        end
+        return nil
+    end
     -- (04/11) the one with the shortest name in the player's language: the examples' cast bars and alert lines have a
     -- fixed room, and a long name came out cut ("Arremessar Ma...", the user's print)
     local best, bestLen
     for _, id in ipairs(list) do
-        local name = C_Spell.GetSpellName(id)
+        local name = SpellName(id)
         local n = type(name) == "string" and #name or nil
         if n and n > 0 and (not bestLen or n < bestLen) then best, bestLen = id, n end
     end
@@ -203,13 +214,13 @@ local function Hex(c) return ("%02x%02x%02x"):format(math.floor(c[1] * 255 + 0.5
 
 local function Alerts(parent, x, y, small)
     local h = 0
-    h = h + AlertLine(parent, x, y - h, FirstSpell("Magic"), L["Cast at you"], C_Spell.GetSpellName(FirstSpell("Magic")) or "", nil, small)
+    h = h + AlertLine(parent, x, y - h, FirstSpell("Magic"), L["Cast at you"], SpellName(FirstSpell("Magic")) or "", nil, small)
     local cls = C_ClassColor.GetClassColor("PRIEST")
     for _, kind in ipairs({ "Magic", "Poison" }) do
         local name = ns.Alerts.KindName(kind)
         local who = cls and cls:WrapTextInColorCode("Lumina") or "Lumina"
         h = h + AlertLine(parent, x, y - h, FirstSpell(kind), ("|cff%s%s|r"):format(Hex(TypeColor(kind)), name),
-            C_Spell.GetSpellName(FirstSpell(kind)) or "", who, small)
+            SpellName(FirstSpell(kind)) or "", who, small)
     end
     return h
 end
@@ -241,7 +252,7 @@ local function CastBar(bar, cast)
     icon:SetSize(12, 12)
     icon:SetPoint("RIGHT", cb, "LEFT", -1, 0)
     if cast.locked then icon:SetAtlas("nameplates-InterruptShield") else icon:SetTexture(Spell(cast.spell)) end
-    local text = Text(cb, "SystemFont_NamePlateCastBar", C_Spell.GetSpellName(cast.spell) or "")
+    local text = Text(cb, "SystemFont_NamePlateCastBar", SpellName(cast.spell) or "")
     text:SetPoint("LEFT", cb, "LEFT", 3, 0)
     text:SetPoint("RIGHT", cb, "CENTER", 20, 0)
     text:SetJustifyH("LEFT")
