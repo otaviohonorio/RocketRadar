@@ -180,7 +180,7 @@ local function Apply(unit)
     local here = UnitExists(unit) and (unit == "player" or IsInGroup())
     pcall(c.SetUnit, c, unit)
     pcall(c.SetAuraGroupFilterString, c, DISPEL, ns.Debuffs.MineFilter())
-    pcall(c.SetAuraGroupCandidateFilters, c, DISPEL, ns.Debuffs.Candidates({ includeDispelTypes = on }))
+    pcall(c.SetAuraGroupCandidateFilters, c, DISPEL, { includeDispelTypes = on })
     pcall(c.SetAuraGroupEnabled, c, DISPEL, here and any)
     pcall(c.SetAuraGroupEnabled, c, MOVE, here and Wanted("Move", unit))
     -- the boss's line leaves a crowd control to the root/slow line while that one is on
@@ -202,9 +202,9 @@ local function Build(unit, index)
     if vertical then pcall(c.SetFlowLayoutAxis, c, vertical) end
     local okG, err = pcall(function()
         local layout = { elementWidth = LINE_W, elementHeight = LINE_H }
-        c:AddAuraGroup(DISPEL, ns.Debuffs.MineFilter(), { maxFrameCount = 1, candidateFilters = ns.Debuffs.Candidates({ includeDispelTypes = {} }),
+        c:AddAuraGroup(DISPEL, ns.Debuffs.MineFilter(), { maxFrameCount = 1, candidateFilters = { includeDispelTypes = {} },
             sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, nil), layout = layout })
-        c:AddAuraGroup(MOVE, ns.Debuffs.MOVE_FILTER, { maxFrameCount = 1, candidateFilters = ns.Debuffs.Candidates(),
+        c:AddAuraGroup(MOVE, ns.Debuffs.MOVE_FILTER, { maxFrameCount = 1,
             sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, "move"), layout = layout })
         c:AddAuraGroup(BOSS, ns.Debuffs.BossFilter(), { maxFrameCount = 1, candidateFilters = ns.Debuffs.Candidates({ isBossOrRoleAura = true }),
             sortMethod = AuraContainerSortMethod.UnitFrameDebuff, initializeFrame = Dress(rec, unit, "boss"), layout = layout })
