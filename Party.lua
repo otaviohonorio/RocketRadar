@@ -1171,6 +1171,19 @@ ns.On("PLAYER_REGEN_ENABLED", function()
 end)
 -- The raid-style party frames re-sort their members (EditModeSystemTemplates.lua calls RefreshMembers):
 -- place the icons again after it, out of combat.
+-- (19/11) A UI of its own hides the game's party frames a moment after the login, when the icons may already sit on
+-- them (seen in the game: nothing showed until a group event looked again): the hiding makes the Radar look again.
+local function LookAgain()
+    C_Timer.After(0.5, function()
+        Party.Build()
+        if ns.Debuffs and ns.db and ns.db.debuffs ~= false then ns.Debuffs.Scan() end
+    end)
+end
+Party.LookAgain = LookAgain
+for _, name in ipairs({ "CompactPartyFrame", "PartyFrame" }) do
+    local f = _G[name]
+    if f and f.HookScript then f:HookScript("OnHide", LookAgain) end
+end
 local compact = _G.CompactPartyFrame
 if compact and compact.RefreshMembers then
     hooksecurefunc(compact, "RefreshMembers", function()
