@@ -546,6 +546,15 @@ function Party.FindOthers()
             othersSolo = othersSolo or fr                  -- the player's unit frame: only outside the group frames
         end
     end
+    -- the diary (development): what the search found, once per change
+    local seen = {}
+    for u in pairs(others) do seen[#seen + 1] = u end
+    table.sort(seen)
+    local line = ("others buttons=%d group=%s solo=%s"):format(#found, table.concat(seen, ","), tostring(othersSolo ~= nil))
+    if line ~= Party.lastOthers then
+        Party.lastOthers = line
+        ns.Log.Event(line)
+    end
     return others
 end
 
