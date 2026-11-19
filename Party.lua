@@ -507,22 +507,79 @@ end
 --------------------------------------------------------------------------------
 -- Anchors: the Blizzard party frames (raid-style or classic), found by their unit attribute
 --------------------------------------------------------------------------------
-local function FrameFor(unit, groupOnly)
-    -- CompactPartyFrame is made by the client's XML (Blizzard_CompactRaidFrames reads it as a global).
-    local CompactPartyFrame = _G.CompactPartyFrame
-    local hosts = {}
-    if CompactPartyFrame and CompactPartyFrame:IsVisible() then hosts[#hosts + 1] = CompactPartyFrame end
-    if PartyFrame and PartyFrame:IsVisible() then hosts[#hosts + 1] = PartyFrame end
-    for _, h in ipairs(hosts) do
-        for _, f in ipairs({ h:GetChildren() }) do
-            if not f:IsForbidden() and f:IsVisible() and f.GetAttribute then
-                local ok, u = pcall(f.GetAttribute, f, "unit")
-                if ok and type(u) == "string" and not issecretvalue(u) and u:lower() == unit then return f end
+-- (19/11, the user: the icons did not show with a UI that hides the game's party frames and draws its own) Any other
+-- group frame on screen: a visible unit button (the game's secure unit template) whose "unit" attribute is the player
+-- or a party member, next to the other members' frames. Only where it is and which unit it shows are read -- never
+-- another addon's data, and nothing changes when there is none. Found again when the group or the screen changes.
+local GROUP_UNITS = { player = true, party1 = true, party2 = true, party3 = true, party4 = true }
+local others, othersSolo = {}, nil
+
+local function UnitAttr(f)
+    if f:IsForbidden() or not f.GetAttribute then return nil end
+    local ok, u = pcall(f.GetAttribute, f, "unit")
+    if ok and type(u) == "string" and not issecretvalue(u) then return u:lower() end
+end
+
+---Looks over every frame for the group's unit buttons; the ones sharing a parent with a teammate's are the group
+---frames (the player's own unit frame, the portrait, is apart and left out).
+function Party.FindOthers()
+    others, othersSolo = {}, nil
+    if type(EnumerateFrames) ~= "function" then return others end
+    for _, h in ipairs({ _G.CompactPartyFrame, _G.PartyFrame }) do
+        if h and h:IsVisible() then return others end      -- the game's own are on screen: nothing to look for
+    end
+    local found, groupParents = {}, {}
+    local f = EnumerateFrames()
+    while f do
+        local u = not f:IsForbidden() and f.IsObjectType and f:IsObjectType("Button") and f:IsVisible() and UnitAttr(f)
+        if u and GROUP_UNITS[u] and f:GetWidth() >= 30 and f:GetHeight() >= 14 then
+            found[#found + 1] = { f, u }
+            if u ~= "player" and f:GetParent() then groupParents[f:GetParent()] = true end
+        end
+        f = EnumerateFrames(f)
+    end
+    for _, x in ipairs(found) do
+        local fr, u = x[1], x[2]
+        if groupParents[fr:GetParent()] then
+            others[u] = others[u] or fr
+        elseif u == "player" then
+            othersSolo = othersSolo or fr                  -- the player's unit frame: only outside the group frames
+        end
+    end
+    return others
+end
+
+---The group frames: { [unit] = frame } (the game's when shown, else any other on screen).
+function Party.GroupFrames()
+    local out = {}
+    local compact, classic = _G.CompactPartyFrame, _G.PartyFrame
+    local blizzard = false
+    for _, h in ipairs({ compact, classic }) do
+        if h and h:IsVisible() then
+            blizzard = true
+            for _, fr in ipairs({ h:GetChildren() }) do
+                local u = fr:IsVisible() and UnitAttr(fr)
+                if u and not out[u] then out[u] = fr end
             end
         end
     end
-    if not groupOnly and unit == "player" and PlayerFrame and PlayerFrame:IsVisible() and not (CompactPartyFrame and CompactPartyFrame:IsVisible()) then
-        return PlayerFrame
+    if blizzard then return out, true end
+    for u, fr in pairs(others) do
+        if fr:IsVisible() and UnitAttr(fr) == u then out[u] = fr end
+    end
+    return out, false
+end
+
+local function FrameFor(unit, groupOnly)
+    -- CompactPartyFrame is made by the client's XML (Blizzard_CompactRaidFrames reads it as a global).
+    local CompactPartyFrame = _G.CompactPartyFrame
+    local frames, blizzard = Party.GroupFrames()
+    if frames[unit] then return frames[unit] end
+    if not groupOnly and unit == "player" then
+        if PlayerFrame and PlayerFrame:IsVisible() and not (CompactPartyFrame and CompactPartyFrame:IsVisible()) then
+            return PlayerFrame
+        end
+        if not blizzard and othersSolo and othersSolo:IsVisible() then return othersSolo end
     end
 end
 
@@ -868,6 +925,7 @@ function Party.Build()
         Party.Probe()
     end
     stats.items, stats.anchored, stats.cc = 0, 0, 0
+    Party.FindOthers()
     local cfg = Cfg()
     local inGroup = IsInGroup() and not IsInRaid() and cfg.on
     local changed = {}
@@ -1032,6 +1090,15 @@ ns.On("SPELL_UPDATE_CHARGES", Party.ExactAll)
 local function Rebuild()
     Party.Build()
     C_Timer.After(1, InspectNext)
+    -- another addon's group frames are often made a moment after the group changes: when none was found, look again
+    if IsInGroup() and not next((Party.GroupFrames())) then
+        C_Timer.After(2, function()
+            if not next((Party.GroupFrames())) then
+                Party.Build()
+                if ns.Debuffs and ns.db.debuffs ~= false then ns.Debuffs.Scan() end
+            end
+        end)
+    end
 end
 ns.On("PLAYER_ENTERING_WORLD", Rebuild)
 ns.On("GROUP_ROSTER_UPDATE", Rebuild)

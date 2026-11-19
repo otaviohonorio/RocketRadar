@@ -419,6 +419,16 @@ function Debuffs.Scan()
             end
         end
     end
+    if host == "none" and ns.Party and ns.Party.GroupFrames then
+        -- (19/11) no game party frame on screen: any other group frames (Party.FindOthers)
+        ns.Party.FindOthers()
+        local frames, blizzard = ns.Party.GroupFrames()
+        for u, f in pairs(blizzard and {} or frames) do
+            host = "other"
+            n = n + 1
+            Attach(f, u)
+        end
+    end
     ns.Log.Seen("debuffs:host", host .. " " .. n)
 end
 
