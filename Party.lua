@@ -574,12 +574,16 @@ function Party.FindOthers()
             f = EnumerateFrames(f)
         end
     end
+    -- (19/11, in the game) the biggest of each unit wins: a UI can mark other buttons with "player" too (a buff
+    -- reminder icon at the top of the screen took the paladin's cooldowns there); outside the group frames, only a
+    -- unit frame's shape (wider than tall) counts as the player's
+    local function area(fr) return fr:GetWidth() * fr:GetHeight() end
     for _, x in ipairs(found) do
         local fr, u = x[1], x[2]
         if groupParents[fr:GetParent()] then
-            others[u] = others[u] or fr
-        elseif u == "player" then
-            othersSolo = othersSolo or fr                  -- the player's unit frame: only outside the group frames
+            if not others[u] or area(fr) > area(others[u]) then others[u] = fr end
+        elseif u == "player" and fr:GetWidth() > fr:GetHeight() then
+            if not othersSolo or area(fr) > area(othersSolo) then othersSolo = fr end
         end
     end
     -- the diary (development): what the search found, and how the game's own frames stood, once per change
