@@ -396,9 +396,16 @@ end
 ---Frames" off), the same two the left side (Party.lua, FrameFor) has always used.
 function Debuffs.Scan()
     local n, host = 0, "none"
+    -- the game's frames only when really seen (Party.Seen): a UI of its own may leave them "visible" out of sight
+    local gameSeen = true
+    if ns.Party and ns.Party.GroupFrames then
+        ns.Party.FindOthers()
+        local _, blizzard = ns.Party.GroupFrames()
+        gameSeen = blizzard
+    end
     local party = rawget(_G, "CompactPartyFrame")
     local members = party and rawget(party, "memberUnitFrames")
-    if type(members) == "table" and party:IsVisible() then
+    if gameSeen and type(members) == "table" and party:IsVisible() then
         host = "compact"
         for _, f in ipairs(members) do
             local u = UnitOf(f)
@@ -407,7 +414,7 @@ function Debuffs.Scan()
         end
     end
     local classic = rawget(_G, "PartyFrame")
-    if classic and classic:IsVisible() then
+    if gameSeen and classic and classic:IsVisible() then
         host = host == "none" and "classic" or host .. "+classic"
         for _, f in ipairs({ classic:GetChildren() }) do
             if not f:IsForbidden() and f.GetAttribute then
@@ -421,7 +428,6 @@ function Debuffs.Scan()
     end
     if host == "none" and ns.Party and ns.Party.GroupFrames then
         -- (19/11) no game party frame on screen: any other group frames (Party.FindOthers)
-        ns.Party.FindOthers()
         local frames, blizzard = ns.Party.GroupFrames()
         for u, f in pairs(blizzard and {} or frames) do
             host = "other"

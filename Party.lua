@@ -520,23 +520,59 @@ local function UnitAttr(f)
     if ok and type(u) == "string" and not issecretvalue(u) then return u:lower() end
 end
 
+---Really seen: shown with its parents, not see-through, its middle on the screen. (19/11) A UI that draws its own
+---group frames can leave the game's "visible" for the game but out of sight: the Radar anchored to those.
+local function Seen(f)
+    if not (f and f:IsVisible()) then return false end
+    local a = f.GetEffectiveAlpha and f:GetEffectiveAlpha()
+    if type(a) == "number" and not issecretvalue(a) and a < 0.05 then return false end
+    local x, y = f:GetCenter()
+    if type(x) == "number" and type(y) == "number" and not issecretvalue(x) and not issecretvalue(y) then
+        local s, us = f:GetEffectiveScale(), UIParent:GetEffectiveScale()
+        local w, h = UIParent:GetWidth(), UIParent:GetHeight()
+        if type(s) == "number" and type(us) == "number" and type(w) == "number" and type(h) == "number" and us > 0 then
+            x, y = x * s / us, y * s / us
+            if x < 0 or y < 0 or x > w or y > h then return false end
+        end
+    end
+    return true
+end
+Party.Seen = Seen
+
+---The game's own party frames that are really seen: { [unit] = frame }, or nil.
+local function GameFrames()
+    local out, any = {}, false
+    for _, h in ipairs({ _G.CompactPartyFrame, _G.PartyFrame }) do
+        if h and h:IsVisible() then
+            for _, fr in ipairs({ h:GetChildren() }) do
+                local u = UnitAttr(fr)
+                if u and Seen(fr) and not out[u] then
+                    out[u] = fr
+                    any = true
+                end
+            end
+        end
+    end
+    return any and out or nil
+end
+
 ---Looks over every frame for the group's unit buttons; the ones sharing a parent with a teammate's are the group
 ---frames (the player's own unit frame, the portrait, is apart and left out).
 function Party.FindOthers()
     others, othersSolo = {}, nil
     if type(EnumerateFrames) ~= "function" then return others end
-    for _, h in ipairs({ _G.CompactPartyFrame, _G.PartyFrame }) do
-        if h and h:IsVisible() then return others end      -- the game's own are on screen: nothing to look for
-    end
+    local game = GameFrames()
     local found, groupParents = {}, {}
-    local f = EnumerateFrames()
-    while f do
-        local u = not f:IsForbidden() and f.IsObjectType and f:IsObjectType("Button") and f:IsVisible() and UnitAttr(f)
-        if u and GROUP_UNITS[u] and f:GetWidth() >= 30 and f:GetHeight() >= 14 then
-            found[#found + 1] = { f, u }
-            if u ~= "player" and f:GetParent() then groupParents[f:GetParent()] = true end
+    if not game then
+        local f = EnumerateFrames()
+        while f do
+            local u = not f:IsForbidden() and f.IsObjectType and f:IsObjectType("Button") and UnitAttr(f)
+            if u and GROUP_UNITS[u] and f:GetWidth() >= 30 and f:GetHeight() >= 14 and Seen(f) then
+                found[#found + 1] = { f, u }
+                if u ~= "player" and f:GetParent() then groupParents[f:GetParent()] = true end
+            end
+            f = EnumerateFrames(f)
         end
-        f = EnumerateFrames(f)
     end
     for _, x in ipairs(found) do
         local fr, u = x[1], x[2]
@@ -546,11 +582,20 @@ function Party.FindOthers()
             othersSolo = othersSolo or fr                  -- the player's unit frame: only outside the group frames
         end
     end
-    -- the diary (development): what the search found, once per change
+    -- the diary (development): what the search found, and how the game's own frames stood, once per change
     local seen = {}
     for u in pairs(others) do seen[#seen + 1] = u end
     table.sort(seen)
-    local line = ("others buttons=%d group=%s solo=%s"):format(#found, table.concat(seen, ","), tostring(othersSolo ~= nil))
+    local function state(h)
+        if not h then return "none" end
+        local a = h.GetEffectiveAlpha and h:GetEffectiveAlpha()
+        local x, y = h:GetCenter()
+        return ("vis=%s a=%s at=%s,%s"):format(tostring(h:IsVisible()), type(a) == "number" and ("%.2f"):format(a) or "?",
+            type(x) == "number" and math.floor(x) or "?", type(y) == "number" and math.floor(y) or "?")
+    end
+    local line = ("others game=%s buttons=%d group=%s solo=%s | compact %s | classic %s"):format(
+        tostring(game ~= nil), #found, table.concat(seen, ","), tostring(othersSolo ~= nil),
+        state(_G.CompactPartyFrame), state(_G.PartyFrame))
     if line ~= Party.lastOthers then
         Party.lastOthers = line
         ns.Log.Event(line)
@@ -558,23 +603,14 @@ function Party.FindOthers()
     return others
 end
 
----The group frames: { [unit] = frame } (the game's when shown, else any other on screen).
+---The group frames: { [unit] = frame } (the game's when really seen, else any other on screen), and whether they are
+---the game's.
 function Party.GroupFrames()
+    local game = GameFrames()
+    if game then return game, true end
     local out = {}
-    local compact, classic = _G.CompactPartyFrame, _G.PartyFrame
-    local blizzard = false
-    for _, h in ipairs({ compact, classic }) do
-        if h and h:IsVisible() then
-            blizzard = true
-            for _, fr in ipairs({ h:GetChildren() }) do
-                local u = fr:IsVisible() and UnitAttr(fr)
-                if u and not out[u] then out[u] = fr end
-            end
-        end
-    end
-    if blizzard then return out, true end
     for u, fr in pairs(others) do
-        if fr:IsVisible() and UnitAttr(fr) == u then out[u] = fr end
+        if Seen(fr) and UnitAttr(fr) == u then out[u] = fr end
     end
     return out, false
 end
@@ -585,7 +621,7 @@ local function FrameFor(unit, groupOnly)
     local frames, blizzard = Party.GroupFrames()
     if frames[unit] then return frames[unit] end
     if not groupOnly and unit == "player" then
-        if PlayerFrame and PlayerFrame:IsVisible() and not (CompactPartyFrame and CompactPartyFrame:IsVisible()) then
+        if Seen(PlayerFrame) and not (CompactPartyFrame and blizzard) then
             return PlayerFrame
         end
         if not blizzard and othersSolo and othersSolo:IsVisible() then return othersSolo end
