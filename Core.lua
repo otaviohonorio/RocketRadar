@@ -7,6 +7,8 @@ local ADDON, ns = ...
 ns.TITLE = "|cffff6a00Rocket|r Radar"
 ns.NAME = "Rocket Radar"
 ns.LOGO = "Interface\\AddOns\\" .. ADDON .. "\\Textures\\Logo.png"   -- the portrait of the main window
+-- (19/11) the window's seal shows the round symbol (the minimap icon), not the square logo with the rocket
+ns.LOGO_SEAL = "Interface\\AddOns\\" .. ADDON .. "\\Textures\\Minimap.png"
 
 -- The key is the English text, so a missing translation still reads.
 ns.L = setmetatable({}, { __index = function(_, k) return k end })
