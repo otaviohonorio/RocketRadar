@@ -303,7 +303,9 @@ end
 local function Place(rec, owner)
     local c = rec.container
     c:ClearAllPoints()
-    c:SetPoint("LEFT", owner, "RIGHT", Debuffs.SIDE, 0)
+    local _, oR = 0, 0
+    if ns.Party and ns.Party.Overhang then _, oR = ns.Party.Overhang(owner, c) end   -- (20/11) art past the edge
+    c:SetPoint("LEFT", owner, "RIGHT", Debuffs.SIDE + oR, 0)
 end
 
 ---Where the cast's icon goes for a party frame: after our debuffs when the right side is on, else the frame itself.

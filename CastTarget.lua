@@ -151,7 +151,9 @@ local function Place(o, frame, slot)
         o:ClearAllPoints()
     end
     -- the debuffs off, or the game refused the anchor: right of the frame, as before (never an error that stops the cast)
-    o:SetPoint("LEFT", frame, "RIGHT", ns.Debuffs.SIDE + step, 0)
+    local _, oR = 0, 0
+    if ns.Party and ns.Party.Overhang then _, oR = ns.Party.Overhang(frame, o) end   -- (20/11) art past the edge
+    o:SetPoint("LEFT", frame, "RIGHT", ns.Debuffs.SIDE + step + oR, 0)
 end
 
 --------------------------------------------------------------------------------

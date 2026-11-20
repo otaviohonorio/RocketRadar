@@ -632,6 +632,32 @@ function Party.GroupFrames()
     return out, false
 end
 
+-- (20/11, the user's print: "O POSICIONAMENTO DO RADAR AINDA TA MUITO BUGADO") another addon's unit button may draw
+-- outside itself -- a round portrait left of the bar -- and the icons anchored to the button's edge sat on it. The
+-- game's Frame:GetBoundsRect (the frame with all it draws; its own UI notes the art "always extends outside") gives
+-- how far the drawing passes each edge. Only for frames that are not the game's (those already sit right).
+local OVERHANG_MAX = 150
+
+---How far another addon's frame draws past its left and right edges, in `rel`'s units: left, right (>= 0).
+function Party.Overhang(f, rel)
+    if not (f and others) then return 0, 0 end
+    local mine = f == othersSolo
+    for _, fr in pairs(others) do if fr == f then mine = true end end
+    if not mine then return 0, 0 end
+    local ok, l, _, w = pcall(f.GetBoundsRect, f)
+    local fl, fr_ = f:GetLeft(), f:GetRight()
+    if not ok then return 0, 0 end
+    local function num(v) return type(v) == "number" and not issecretvalue(v) end
+    if not (num(l) and num(w) and num(fl) and num(fr_)) then return 0, 0 end
+    local left, right = math.max(0, fl - l), math.max(0, (l + w) - fr_)
+    if left > OVERHANG_MAX then left = 0 end
+    if right > OVERHANG_MAX then right = 0 end
+    ns.Log.Seen("party:overhang", ("%d/%d"):format(math.floor(left + 0.5), math.floor(right + 0.5)))   -- the diary
+    local s1, s2 = f:GetEffectiveScale(), rel and rel:GetEffectiveScale() or 1
+    if type(s1) ~= "number" or type(s2) ~= "number" or s2 <= 0 then return left, right end
+    return left * s1 / s2, right * s1 / s2
+end
+
 local function FrameFor(unit, groupOnly)
     -- CompactPartyFrame is made by the client's XML (Blizzard_CompactRaidFrames reads it as a global).
     local CompactPartyFrame = _G.CompactPartyFrame
@@ -671,7 +697,8 @@ local function Place(rec)
         Party.Resize(cell, size)
         if f then
             local row, col = math.floor((i - 1) / perRow), (i - 1) % perRow
-            local x = 3 + col * (size + GAP)
+            local oL, oR = Party.Overhang(f, cell)
+            local x = 3 + col * (size + GAP) + (cfg.side == "LEFT" and oL or oR)
             local y = top - row * (size + GAP) - size / 2   -- the cell's own middle, above (+) or below the line
             if cfg.side == "LEFT" then
                 cell:SetPoint("RIGHT", f, "LEFT", -x, y)
