@@ -639,20 +639,55 @@ end
 local OVERHANG_MAX = 150
 
 ---How far another addon's frame draws past its left and right edges, in `rel`'s units: left, right (>= 0).
+local function num(v) return type(v) == "number" and not issecretvalue(v) end
+
+-- (20/11, in the game: no change) WoW Forever gives a frame whose bar shows blocked values a BLOCKED rect: the bounds
+-- came back secret and the icons stayed on the portrait. The second way reads what the other addon wrote itself: the
+-- shown children ANCHORED to the frame's left or right edge, with their size ("CENTER" of a 64 ring on the "LEFT" edge:
+-- 32 past it). Plain numbers of the other addon's code, never a blocked value.
+local H_OF = { LEFT = 0, TOPLEFT = 0, BOTTOMLEFT = 0, CENTER = 0.5, TOP = 0.5, BOTTOM = 0.5, RIGHT = 1, TOPRIGHT = 1,
+               BOTTOMRIGHT = 1 }
+local function ByAnchors(f)
+    local left, right = 0, 0
+    local ok, kids = pcall(function() return { f:GetChildren() } end)
+    if not ok then return 0, 0 end
+    for _, c in ipairs(kids) do
+        local okC, shown, w = pcall(function() return c:IsShown(), c:GetWidth() end)
+        if okC and shown == true and num(w) and w > 0 then
+            for i = 1, (c:GetNumPoints() or 0) do
+                local okP, point, relTo, relPoint, x = pcall(c.GetPoint, c, i)
+                if okP and relTo == f and num(x) and H_OF[point] and type(relPoint) == "string" then
+                    local edgeOfChild = x - H_OF[point] * w             -- its left edge from the anchor's x
+                    if relPoint:find("LEFT") then
+                        left = math.max(left, -edgeOfChild)
+                    elseif relPoint:find("RIGHT") then
+                        right = math.max(right, edgeOfChild + w)
+                    end
+                end
+            end
+        end
+    end
+    return left, right
+end
+
+---How far another addon's frame draws past its left and right edges, in `rel`'s units: left, right (>= 0).
 function Party.Overhang(f, rel)
     if not (f and others) then return 0, 0 end
     local mine = f == othersSolo
     for _, fr in pairs(others) do if fr == f then mine = true end end
     if not mine then return 0, 0 end
+    local left, right = ByAnchors(f)
+    local how = "anchors"
     local ok, l, _, w = pcall(f.GetBoundsRect, f)
-    local fl, fr_ = f:GetLeft(), f:GetRight()
-    if not ok then return 0, 0 end
-    local function num(v) return type(v) == "number" and not issecretvalue(v) end
-    if not (num(l) and num(w) and num(fl) and num(fr_)) then return 0, 0 end
-    local left, right = math.max(0, fl - l), math.max(0, (l + w) - fr_)
+    local okE, fl, fr_ = pcall(function() return f:GetLeft(), f:GetRight() end)
+    if ok and okE and num(l) and num(w) and num(fl) and num(fr_) then
+        left, right = math.max(left, fl - l), math.max(right, (l + w) - fr_)
+        how = "bounds"
+    end
     if left > OVERHANG_MAX then left = 0 end
     if right > OVERHANG_MAX then right = 0 end
-    ns.Log.Seen("party:overhang", ("%d/%d"):format(math.floor(left + 0.5), math.floor(right + 0.5)))   -- the diary
+    -- the diary: how it was measured and how much (left/right)
+    ns.Log.Seen("party:overhang", ("%s %d/%d"):format(how, math.floor(left + 0.5), math.floor(right + 0.5)))
     local s1, s2 = f:GetEffectiveScale(), rel and rel:GetEffectiveScale() or 1
     if type(s1) ~= "number" or type(s2) ~= "number" or s2 <= 0 then return left, right end
     return left * s1 / s2, right * s1 / s2
