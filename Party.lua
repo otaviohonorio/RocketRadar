@@ -523,7 +523,10 @@ end
 ---Really seen: shown with its parents, not see-through, its middle on the screen. (19/11) A UI that draws its own
 ---group frames can leave the game's "visible" for the game but out of sight: the Radar anchored to those.
 local function Seen(f)
-    if not (f and f:IsVisible()) then return false end
+    if not f then return false end
+    -- (19/11, in the game: 31 errors "boolean test on a secret boolean value") the answer may come blocked
+    local okV, vis = pcall(f.IsVisible, f)
+    if not okV or issecretvalue(vis) or not vis then return false end
     local a = f.GetEffectiveAlpha and f:GetEffectiveAlpha()
     if type(a) == "number" and not issecretvalue(a) and a < 0.05 then return false end
     local x, y = f:GetCenter()
@@ -543,7 +546,7 @@ Party.Seen = Seen
 local function GameFrames()
     local out, any = {}, false
     for _, h in ipairs({ _G.CompactPartyFrame, _G.PartyFrame }) do
-        if h and h:IsVisible() then
+        if h and Seen(h) then
             for _, fr in ipairs({ h:GetChildren() }) do
                 local u = UnitAttr(fr)
                 if u and Seen(fr) and not out[u] then
@@ -564,12 +567,22 @@ function Party.FindOthers()
     local game = GameFrames()
     local found, groupParents = {}, {}
     if not game then
+        -- (19/11, in the game: 11 errors "calling IsObjectType on bad self (Attempt to access forbidden object from
+        -- code tainted by an AddOn)" on another addon's aura frame that IsForbidden called fine) every question about
+        -- a frame goes inside pcall: a frame the game refuses is left out, never an error
+        local function Probe(fr)
+            if fr:IsForbidden() or not (fr.IsObjectType and fr:IsObjectType("Button")) then return nil end
+            local u = UnitAttr(fr)
+            if u and GROUP_UNITS[u] and fr:GetWidth() >= 30 and fr:GetHeight() >= 14 and Seen(fr) then
+                return u, fr:GetParent()
+            end
+        end
         local f = EnumerateFrames()
         while f do
-            local u = not f:IsForbidden() and f.IsObjectType and f:IsObjectType("Button") and UnitAttr(f)
-            if u and GROUP_UNITS[u] and f:GetWidth() >= 30 and f:GetHeight() >= 14 and Seen(f) then
+            local ok, u, parent = pcall(Probe, f)
+            if ok and u then
                 found[#found + 1] = { f, u }
-                if u ~= "player" and f:GetParent() then groupParents[f:GetParent()] = true end
+                if u ~= "player" and parent then groupParents[parent] = true end
             end
             f = EnumerateFrames(f)
         end
@@ -628,7 +641,7 @@ local function FrameFor(unit, groupOnly)
         if Seen(PlayerFrame) and not (CompactPartyFrame and blizzard) then
             return PlayerFrame
         end
-        if not blizzard and othersSolo and othersSolo:IsVisible() then return othersSolo end
+        if not blizzard and othersSolo and Seen(othersSolo) then return othersSolo end
     end
 end
 
