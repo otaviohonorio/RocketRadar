@@ -8,17 +8,22 @@
 --
 -- UnitThreatSituation: 0/1 another unit holds the mob, 2 the unit holds it but is not the highest
 -- on the list (about to lose it), 3 it holds it securely.
+--
+-- (22/11/2026) The percentage beside the shield (the user approved the preview "PREVIA Rocket Radar - ameaca antes de
+-- puxar"): UnitDetailedThreatSituation's third value, scaledPercentage, is how much of the threat needed to take the
+-- mob a unit has (100 = the mob turns to it; the game already counts the distance, the 110%/130% rule). Its values are
+-- "generally not secret" between the player or an ally and a mob that is not a boss
+-- (SecretWhenUnitThreatValuesRestricted, 12.1.5 and the Forever); on a boss they are, and the number is left out.
+-- UnitThreatPercentageOfLead is not used: neither the game's documentation nor the wiki says what it returns.
 local ADDON, ns = ...
 local L = ns.L
 
 ns.Threat = {}
 
-local STATE = {
-    safe = GREEN_FONT_COLOR,
-    risk = ORANGE_FONT_COLOR,
-    lost = RED_FONT_COLOR,
-    tank = HIGHLIGHT_FONT_COLOR,
-}
+-- Damage and healers: the shield turns yellow from the player's choice (threatWarn) and blinks from STRONG. The tank:
+-- orange when the closest player is within LEAD of taking the mob.
+local STRONG = 90
+local LEAD = 20
 
 local tokens = setmetatable({}, { __mode = "k" })
 local shown = {}
@@ -44,6 +49,13 @@ local function TokenOf(plate)
     fade:SetFromAlpha(1)
     fade:SetToAlpha(0.3)
     fade:SetDuration(0.35)
+    -- about to take the mob: a slower blink than the loose mob's
+    token.slow = token:CreateAnimationGroup()
+    token.slow:SetLooping("BOUNCE")
+    local slow = token.slow:CreateAnimation("Alpha")
+    slow:SetFromAlpha(1)
+    slow:SetToAlpha(0.45)
+    slow:SetDuration(0.8)
     tokens[plate] = token
     return token
 end
@@ -64,6 +76,35 @@ local function Holder(unit)
     end
 end
 
+---How much of the threat needed to take `unit` that `who` has (0-100), or nil when the game does not say (no
+---threat yet, or a secret value: a boss).
+local function Percent(who, unit)
+    local tanking, _, scaled = UnitDetailedThreatSituation(who, unit)
+    if scaled == nil then return nil end
+    -- the log answers the in-game test: does the game hide the number on trash too, or only on bosses?
+    local secret = issecretvalue(scaled)
+    ns.Log.Seen("threat.pct.secret", secret)
+    if secret then return nil end
+    return scaled, tanking
+end
+
+---The highest percentage among the group's other members who are not tanks (a second tank close is the plan), or nil.
+local function NextPercent(unit)
+    local prefix = IsInRaid() and "raid" or "party"
+    local last = GetNumGroupMembers()
+    if prefix == "party" then last = last - 1 end
+    local best
+    for i = 1, last do
+        local ally = prefix .. i
+        -- the one holding the mob (the player themself, in a raid's list) is not "the next"
+        if UnitGroupRolesAssigned(ally) ~= "TANK" then
+            local pct, tanking = Percent(ally, unit)
+            if pct and not issecretvalue(tanking) and tanking ~= true and (not best or pct > best) then best = pct end
+        end
+    end
+    return best
+end
+
 ---Name of `ally` in its class colour.
 local function HolderName(ally)
     local name = UnitName(ally)
@@ -77,23 +118,38 @@ local function Hide(unit)
     local token = shown[unit]
     if token then
         token.pulse:Stop()
+        token.slow:Stop()
         token:Hide()
         shown[unit] = nil
     end
 end
 
-local function Show(unit, plate, state, name)
+---`label`: the name of who took the mob (class colour; kept by the names option) or, `number` true, a percentage or
+---"You" (kept by the percentage option), in the state's colour. `blink`: "fast" (loose) / "slow" (about to take it).
+local function Show(unit, plate, state, label, number, blink, dim)
     local token = TokenOf(plate)
     shown[unit] = token
-    token.icon:SetVertexColor(ns.ColorOf("threat." .. state))   -- (04/11) the player's colour, else the game's (STATE)
-    token.name:SetText(ns.db.threatNames and name or "")
-    if state == "lost" then
+    local r, g, b = ns.ColorOf("threat." .. state)   -- (04/11) the player's colour, else the game's
+    token.icon:SetVertexColor(r, g, b)
+    token.icon:SetAlpha(dim and 0.45 or 1)
+    local on
+    if number then on = ns.db.threatPercent ~= false else on = ns.db.threatNames end
+    token.name:SetText(on and label or "")
+    token.name:SetTextColor(r, g, b)
+    if blink == "fast" then
+        token.slow:Stop()
         if not token.pulse:IsPlaying() then token.pulse:Play() end
+    elseif blink == "slow" then
+        token.pulse:Stop()
+        if not token.slow:IsPlaying() then token.slow:Play() end
     else
         token.pulse:Stop()
+        token.slow:Stop()
     end
     token:Show()
 end
+
+local function Pct(v) return string.format("%d%%", math.floor(v + 0.5)) end
 
 ---Updates one plate.
 local function Update(unit)
@@ -109,10 +165,12 @@ local function Update(unit)
     ns.Log.Seen("threat.player.secret", false)
 
     if ns.IsTank() then
-        if status == 3 then
-            return Show(unit, plate, "safe")
-        elseif status == 2 then
-            return Show(unit, plate, "risk")
+        if status == 3 or status == 2 then
+            -- The lead: how far the closest player (not a tank) is from taking the mob. Alone, or on a boss, no number.
+            local nextPct = IsInGroup() and NextPercent(unit)
+            local lead = nextPct and math.max(0, 100 - nextPct)
+            local state = (status == 2 or (lead and lead < LEAD)) and "risk" or "safe"
+            return Show(unit, plate, state, lead and ("+" .. Pct(lead)), true)
         end
         -- Alone there is nobody to lose the mob to: a pet holding it is fine.
         if not IsInGroup() then return Hide(unit) end
@@ -123,16 +181,22 @@ local function Update(unit)
         if UnitGroupRolesAssigned(holder) == "TANK" then
             return Show(unit, plate, "tank", name)
         end
-        return Show(unit, plate, "lost", name)
+        return Show(unit, plate, "lost", name, nil, "fast")
     end
 
-    -- Damage or healer: the marker appears only when the mob turned to the player. Alone that is
-    -- simply the fight, not a warning: the user saw a red shield on every rare (02/11).
-    if status and status >= 2 and IsInGroup() then
-        Show(unit, plate, "lost")
-    else
-        Hide(unit)
+    -- Damage or healer: alone a mob on the player is simply the fight, not a warning (the user saw a red shield on
+    -- every rare, 02/11). In a group: red when it turned to the player, yellow while close to it.
+    if not IsInGroup() then return Hide(unit) end
+    if status and status >= 2 then
+        return Show(unit, plate, "lost", YOU, true, "fast")
     end
+    local pct = ns.db.threatPercent ~= false and Percent("player", unit)
+    local warn = tonumber(ns.db.threatWarn) or 70
+    if pct and pct >= warn then
+        local strong = pct >= STRONG
+        return Show(unit, plate, "warn", Pct(pct), true, strong and "slow" or nil, not strong)
+    end
+    Hide(unit)
 end
 
 local function Safely(unit)

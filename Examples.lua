@@ -262,7 +262,7 @@ local function CastBar(bar, cast)
     return cb
 end
 
-local function Plate(parent, x, y, name, castKey, threat, cast, holder)
+local function Plate(parent, x, y, name, castKey, threat, cast, holder, dim)
     local bar = CreateFrame("Frame", nil, parent)
     bar:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y - 12)
     bar:SetSize(150, 12)
@@ -293,9 +293,12 @@ local function Plate(parent, x, y, name, castKey, threat, cast, holder)
         s:SetAtlas("ui-lfg-roleicon-tank-micro-groupfinder")
         s:SetDesaturated(true)
         s:SetVertexColor(ns.ColorOf("threat." .. threat))
+        if dim then s:SetAlpha(0.45) end
         if holder then
+            -- (22/11) the text beside the shield in the state's colour, as on the plates (a name keeps its class colour)
             local hn = Text(parent, "GameFontHighlightSmallOutline", holder)
             hn:SetPoint("RIGHT", s, "LEFT", -2, 0)
+            hn:SetTextColor(ns.ColorOf("threat." .. threat))
         end
     end
     return bar
@@ -395,15 +398,15 @@ function Ex.Threat(parent, x, y, w)
     -- (04/11) a plate takes 24 (its name above, its bar): 40 between rows leaves air between one bar and the next
     -- name (at 30 they touched: the user, "na aba de ameaça o texto tbm tá um pouco colado")
     local ROW = 40
-    local h = 254
+    local h = 334
     local box = Ex.Box(parent, x, y, w, h)
     local t1 = Text(box, "GameFontNormal", L["Playing a tank"])
     t1:SetPoint("TOPLEFT", box, "TOPLEFT", 12, -10)
     local dk = C_ClassColor.GetClassColor("DEATHKNIGHT")
     local morgrath = dk and dk:WrapTextInColorCode("Morgrath") or "Morgrath"
     local rows = {
-        { "safe", nil, L["green: the mob is with you and safe"] },
-        { "risk", nil, L["orange: with you, about to be lost"] },
+        { "safe", "+65%", L["green: the mob is with you and safe"] },
+        { "risk", "+6%", L["orange: with you, about to be lost"] },
         { "lost", morgrath, L["red and blinking: loose, with the name of who took it"] },
         { "tank", "Thoren", L["white: with the other tank"] },
     }
@@ -413,8 +416,15 @@ function Ex.Threat(parent, x, y, w)
     end
     local t2 = Text(box, "GameFontNormal", L["Playing damage or healer (in a group)"])
     t2:SetPoint("TOPLEFT", box, "TOPLEFT", 12, -188)
-    local p = Plate(box, 130, -216, L["Mob"], nil, "lost")   -- 12 between the title and the plate's name
-    Caption(box, p, L["red: the mob turned to you"])
+    local dps = {
+        { "warn", "72%", L["yellow: close to taking the mob, with how much you have"], true },
+        { "warn", "94%", L["yellow and blinking: from 90%, about to take it"] },
+        { "lost", YOU, L["red: the mob turned to you"] },
+    }
+    for i, r in ipairs(dps) do   -- 12 between the title and the first plate's name
+        local p = Plate(box, 130, -216 - (i - 1) * ROW, L["Mob"], nil, r[1], nil, r[2], r[4])
+        Caption(box, p, r[3])
+    end
     return h + 10
 end
 

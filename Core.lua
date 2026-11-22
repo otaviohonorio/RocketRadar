@@ -19,6 +19,8 @@ ns.defaults = {
     kickFilter = "all",  -- all / important
     threat = true,
     threatNames = true,
+    threatPercent = true,    -- (22/11) the percentage beside the shield
+    threatWarn = 70,         -- damage and healers: the yellow shield from this share of the threat needed to take the mob
     -- the group (Party.lua, CastTarget.lua): the options window's Group section
     party = true,
     partySelf = true,
@@ -59,7 +61,8 @@ ns.GAME_COLOR = {
     Move = { 0.55, 0.85, 1.0 },
 }
 -- (04/11) the threat shield's colour of each state, a colour object of the game (the Threat tab lets each one change)
-ns.THREAT_DEFAULT = { safe = "GREEN_FONT_COLOR", risk = "ORANGE_FONT_COLOR", lost = "RED_FONT_COLOR", tank = "HIGHLIGHT_FONT_COLOR" }
+ns.THREAT_DEFAULT = { safe = "GREEN_FONT_COLOR", risk = "ORANGE_FONT_COLOR", lost = "RED_FONT_COLOR", tank = "HIGHLIGHT_FONT_COLOR",
+    warn = "YELLOW_FONT_COLOR" }   -- (22/11) close to taking the mob
 -- The dispel types, in the order the game lists them (AuraUtil, DEBUFF_DISPLAY_INFO).
 ns.DISPEL_TYPES = { "Magic", "Curse", "Disease", "Poison", "Bleed" }
 

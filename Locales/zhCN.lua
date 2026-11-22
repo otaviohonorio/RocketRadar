@@ -249,11 +249,27 @@ L["Follows your specialization: a tank specialization plays as tank, any other a
     "跟随你的专精：坦克专精按坦克，其他专精按伤害输出或治疗者。"
 L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."] =
     "每个敌方姓名板旁的盾牌显示敌人在谁身上：绿色，稳定在你身上；橙色，即将丢失；红色闪烁，已脱离，显示抢走者的名字；白色，在另一名坦克身上。"
-L["The shield shows only when an enemy turns to you (in a group): red, so you step back or use a defensive."] =
-    "盾牌只在敌人转向你时显示（组队时）：红色，提醒你后退或使用减伤技能。"
 L["casting: the outline fills in the cast's colour"] = "施法中：轮廓以施法颜色填满"
 L["uninterruptible: the game's grey (an option)"] = "不可打断：游戏的灰色（选项）"
 L["green: safe with you"] = "绿色：稳定在你身上"
 L["red and blinking: loose, with who took it"] = "红色闪烁：已脱离，显示抢走者"
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "左侧：减伤技能和爆发（亮 = 生效；暗并旋转 = 冷却中）。右侧：即将到来的施法 | 你可驱散的 | 首领的。"
+
+-- (22/11/2026) the threat percentage beside the shield
+L["Show the percentage"] =
+    "显示百分比"
+L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
+    "伤害输出和治疗者：你已拥有让敌人转向你所需威胁的多少。坦克：下一位玩家距离从你身上夺走它还差多少。"
+L["Warn from"] =
+    "警告起点"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
+    "伤害输出和治疗者，组队时：达到让敌人转向你所需威胁的这一比例时盾牌变黄，从90%开始闪烁。"
+L["Close to taking the mob"] =
+    "敌人即将转向你"
+L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
+    "当敌人即将转向你时（黄色，附百分比）和转向你时（红色），盾牌会显示（组队时）。"
+L["yellow: close to taking the mob, with how much you have"] =
+    "黄色：敌人即将转向你，附你已有的威胁"
+L["yellow and blinking: from 90%, about to take it"] =
+    "黄色闪烁：从90%起，敌人即将转向你"

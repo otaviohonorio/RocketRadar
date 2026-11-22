@@ -282,8 +282,6 @@ L["Follows your specialization: a tank specialization plays as tank, any other a
     "Suit votre spécialisation : une spécialisation de tank joue en tank, toute autre en dégâts ou soigneur."
 L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."] =
     "Le bouclier à côté de chaque barre d'info ennemie indique qui tient l'ennemi : vert, en sécurité sur vous ; orange, presque perdu ; rouge clignotant, libre, avec le nom de qui l'a pris ; blanc, sur l'autre tank."
-L["The shield shows only when an enemy turns to you (in a group): red, so you step back or use a defensive."] =
-    "Le bouclier n'apparaît que lorsqu'un ennemi se tourne vers vous (en groupe) : rouge, pour que vous reculiez ou utilisiez un défensif."
 -- (04/11/2026) the General example as the preview
 L["casting: the outline fills in the cast's colour"] = "incantation : le contour se remplit de sa couleur"
 L["uninterruptible: the game's grey (an option)"] = "non interruptible : le gris du jeu (option)"
@@ -291,3 +289,21 @@ L["green: safe with you"] = "vert : en sécurité sur vous"
 L["red and blinking: loose, with who took it"] = "rouge clignotant : libre, avec qui l'a pris"
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "À gauche : défensifs et bursts (allumé = actif ; sombre avec balayage = en recharge). À droite : l'incantation qui arrive | ce que vous dissipez | celui du boss."
+
+-- (22/11/2026) the threat percentage beside the shield
+L["Show the percentage"] =
+    "Afficher le pourcentage"
+L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
+    "Dégâts et soigneurs : la part de la menace nécessaire pour que l'ennemi se tourne vers vous que vous avez déjà. Tank : ce qu'il manque au joueur suivant pour vous le prendre."
+L["Warn from"] =
+    "Avertir à partir de"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
+    "Dégâts et soigneurs, en groupe : le bouclier devient jaune à partir de cette part de la menace nécessaire pour que l'ennemi se tourne vers vous, et clignote à partir de 90%."
+L["Close to taking the mob"] =
+    "L'ennemi va bientôt se tourner vers vous"
+L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
+    "Le bouclier apparaît quand un ennemi va bientôt se tourner vers vous (jaune, avec le pourcentage) et quand il le fait (rouge), en groupe."
+L["yellow: close to taking the mob, with how much you have"] =
+    "jaune : l'ennemi va bientôt se tourner vers vous, avec votre part"
+L["yellow and blinking: from 90%, about to take it"] =
+    "jaune et clignotant : dès 90%, sur le point de venir sur vous"

@@ -167,7 +167,7 @@ local function GeneralTab(f)
         GameTooltip_AddNormalLine(GameTooltip, L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."], true)
         GameTooltip_AddBlankLineToTooltip(GameTooltip)
         GameTooltip_AddHighlightLine(GameTooltip, L["Damage or healer"])
-        GameTooltip_AddNormalLine(GameTooltip, L["The shield shows only when an enemy turns to you (in a group): red, so you step back or use a defensive."], true)
+        GameTooltip_AddNormalLine(GameTooltip, L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."], true)
         GameTooltip:Show()
     end)
     help:SetScript("OnLeave", GameTooltip_Hide)
@@ -223,12 +223,20 @@ local function ThreatTab(f)
         refresh)
     y = Check(f, c, y, "threatNames", L["Name who holds the mob"],
         L["Beside the marker of a mob you do not hold, in the class colour."], refresh)
+    -- (22/11) the percentage beside the shield (the user approved the preview's frames 1 and 2)
+    y = Check(f, c, y, "threatPercent", L["Show the percentage"],
+        L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."],
+        refresh, true)
+    y = Slider(f, c, y, "threatWarn", L["Warn from"],
+        L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."],
+        50, 90, 5, 70, refresh)
     -- (04/11) the colour of each state (the user: "na ameaça, se virar aba, pode ter a paleta de cores para editar a
     -- cor dos estagios"); the game's colours at first, a right click goes back to them
     local r = Right()
     local y2 = Section(f, r, top, rawget(_G, "COLOR") or L["Colour"])
     for _, st in ipairs({ { "safe", L["Safe with you"] }, { "risk", L["About to be lost"] },
-                          { "lost", L["Loose (or turned to you)"] }, { "tank", L["With the other tank"] } }) do
+                          { "lost", L["Loose (or turned to you)"] }, { "tank", L["With the other tank"] },
+                          { "warn", L["Close to taking the mob"] } }) do
         y2 = Color(f, r, y2, "threat." .. st[1], st[2], L["The shield's colour in this state. At first, the game's own."])
     end
     return math.min(y, y2)

@@ -260,11 +260,27 @@ L["Follows your specialization: a tank specialization plays as tank, any other a
     "전문화를 따릅니다: 방어 전담 전문화는 방어 전담으로, 그 밖에는 공격 또는 치유 전담으로."
 L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."] =
     "적 이름표마다 옆의 방패가 누가 잡고 있는지 알려 줍니다: 초록, 나에게 안전; 주황, 곧 놓침; 빨강 깜빡임, 풀림, 가져간 사람 이름과 함께; 흰색, 다른 방어 전담에게."
-L["The shield shows only when an enemy turns to you (in a group): red, so you step back or use a defensive."] =
-    "방패는 적이 나를 노릴 때만 나타납니다 (파티 중): 빨강이면 물러나거나 생존기를 쓰세요."
 L["casting: the outline fills in the cast's colour"] = "시전 중: 외곽선이 시전 색상으로 차오름"
 L["uninterruptible: the game's grey (an option)"] = "방해 불가: 게임의 회색 (설정)"
 L["green: safe with you"] = "초록: 나에게 안전"
 L["red and blinking: loose, with who took it"] = "빨강 깜빡임: 풀림, 가져간 사람과 함께"
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "왼쪽: 생존기와 폭딜 (밝음 = 활성, 어둡고 회전 = 재사용 대기 중). 오른쪽: 오는 시전 | 내가 무효화할 것 | 우두머리의 것."
+
+-- (22/11/2026) the threat percentage beside the shield
+L["Show the percentage"] =
+    "백분율 표시"
+L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
+    "공격 및 치유 전담: 적이 나를 노리게 되는 데 필요한 위협 중 내가 가진 양. 방어 전담: 다음 플레이어가 적을 가져가기까지 남은 양."
+L["Warn from"] =
+    "경고 시작"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
+    "공격 및 치유 전담, 파티 중: 적이 나를 노리게 되는 데 필요한 위협이 이 비율에 이르면 방패가 노랑이 되고, 90%부터 깜박입니다."
+L["Close to taking the mob"] =
+    "적이 곧 나를 노림"
+L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
+    "방패는 적이 곧 나를 노리게 될 때 (노랑, 백분율과 함께)와 실제로 노릴 때 (빨강) 나타납니다 (파티 중)."
+L["yellow: close to taking the mob, with how much you have"] =
+    "노랑: 적이 곧 나를 노림, 내가 가진 위협과 함께"
+L["yellow and blinking: from 90%, about to take it"] =
+    "노랑 깜박임: 90%부터, 곧 나에게 옴"

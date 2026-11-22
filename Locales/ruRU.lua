@@ -274,11 +274,27 @@ L["Follows your specialization: a tank specialization plays as tank, any other a
     "По вашей специализации: специализация танка играет как танк, любая другая — как боец или лекарь."
 L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."] =
     "Щит рядом с каждым индикатором противника показывает, у кого он: зелёный — надёжно у вас; оранжевый — вот-вот уйдёт; красный мигающий — сорвался, с именем того, кто его взял; белый — у другого танка."
-L["The shield shows only when an enemy turns to you (in a group): red, so you step back or use a defensive."] =
-    "Щит появляется, только когда противник поворачивается к вам (в группе): красный — чтобы вы отошли или применили защитную способность."
 L["casting: the outline fills in the cast's colour"] = "применение: контур заполняется цветом применения"
 L["uninterruptible: the game's grey (an option)"] = "непрерываемое: серый цвет игры (параметр)"
 L["green: safe with you"] = "зелёный: надёжно у вас"
 L["red and blinking: loose, with who took it"] = "красный мигающий: сорвался, с тем, кто взял"
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "Слева: защитные и бурсты (светится = активно; темно с разверткой = восстанавливается). Справа: предстоящее применение | что снимаете вы | от босса."
+
+-- (22/11/2026) the threat percentage beside the shield
+L["Show the percentage"] =
+    "Показывать процент"
+L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
+    "Бойцы и лекари: какая доля угрозы, нужной, чтобы противник повернулся к вам, у вас уже есть. Танк: сколько не хватает следующему игроку, чтобы отобрать его у вас."
+L["Warn from"] =
+    "Предупреждать с"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
+    "Бойцы и лекари, в группе: щит становится жёлтым с этой доли угрозы, нужной, чтобы противник повернулся к вам, и мигает с 90%."
+L["Close to taking the mob"] =
+    "Противник вот-вот повернётся к вам"
+L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
+    "Щит появляется, когда противник вот-вот повернётся к вам (жёлтый, с процентом) и когда поворачивается (красный), в группе."
+L["yellow: close to taking the mob, with how much you have"] =
+    "жёлтый: противник вот-вот повернётся к вам, с вашей долей"
+L["yellow and blinking: from 90%, about to take it"] =
+    "жёлтый мигающий: с 90%, вот-вот пойдёт на вас"
