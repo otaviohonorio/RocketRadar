@@ -290,8 +290,6 @@ L["Damage and healers: how much of the threat needed to take the mob you have. T
     "Dano e cura: quanto você já tem da ameaça necessária para o inimigo vir para você. Tanque: quanto falta para o próximo jogador tirá-lo de você."
 L["Warn from"] =
     "Avisar a partir de"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
-    "Dano e cura, em grupo: o escudo fica amarelo a partir desta parte da ameaça necessária para o inimigo vir para você, e pisca a partir de 90%."
 L["Close to taking the mob"] =
     "Perto de o inimigo vir para você"
 L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
@@ -300,3 +298,13 @@ L["yellow: close to taking the mob, with how much you have"] =
     "amarelo: perto de o inimigo vir para você, com quanto você já tem"
 L["yellow and blinking: from 90%, about to take it"] =
     "amarelo piscando: a partir de 90%, prestes a vir para você"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
+    "Dano e cura, em grupo: o escudo fica amarelo a partir desta parte da ameaça necessária para o inimigo vir para você."
+L["Blink from"] =
+    "Piscar a partir de"
+L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
+    "Dano e cura, em grupo: a partir desta parte o escudo amarelo acende e pisca. Em 100 ele nunca pisca."
+L["Tank: warn below a lead of"] =
+    "Tanque: avisar com folga menor que"
+L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
+    "O escudo fica laranja quando o jogador mais perto (que não é tanque) está a esta distância de tirar o inimigo de você."

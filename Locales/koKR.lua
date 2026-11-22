@@ -274,8 +274,6 @@ L["Damage and healers: how much of the threat needed to take the mob you have. T
     "공격 및 치유 전담: 적이 나를 노리게 되는 데 필요한 위협 중 내가 가진 양. 방어 전담: 다음 플레이어가 적을 가져가기까지 남은 양."
 L["Warn from"] =
     "경고 시작"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
-    "공격 및 치유 전담, 파티 중: 적이 나를 노리게 되는 데 필요한 위협이 이 비율에 이르면 방패가 노랑이 되고, 90%부터 깜박입니다."
 L["Close to taking the mob"] =
     "적이 곧 나를 노림"
 L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
@@ -284,3 +282,13 @@ L["yellow: close to taking the mob, with how much you have"] =
     "노랑: 적이 곧 나를 노림, 내가 가진 위협과 함께"
 L["yellow and blinking: from 90%, about to take it"] =
     "노랑 깜박임: 90%부터, 곧 나에게 옴"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
+    "공격 및 치유 전담, 파티 중: 적이 나를 노리게 되는 데 필요한 위협이 이 비율에 이르면 방패가 노랑이 됩니다."
+L["Blink from"] =
+    "깜박임 시작"
+L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
+    "공격 및 치유 전담, 파티 중: 이 비율부터 노란 방패가 밝아지고 깜박입니다. 100이면 깜박이지 않습니다."
+L["Tank: warn below a lead of"] =
+    "방어 전담: 여유가 이보다 적으면 경고"
+L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
+    "가장 가까운 플레이어(방어 전담 제외)가 이만큼 가까이 와서 적을 가져가려 하면 방패가 주황이 됩니다."

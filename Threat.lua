@@ -20,10 +20,9 @@ local L = ns.L
 
 ns.Threat = {}
 
--- Damage and healers: the shield turns yellow from the player's choice (threatWarn) and blinks from STRONG. The tank:
--- orange when the closest player is within LEAD of taking the mob.
-local STRONG = 90
-local LEAD = 20
+-- Damage and healers: the shield turns yellow from threatWarn and blinks from threatStrong. The tank: orange when the
+-- closest player is within threatLead of taking the mob. All three are the player's (the Threat tab); these, the default.
+local WARN, STRONG, LEAD = 70, 90, 20
 
 local tokens = setmetatable({}, { __mode = "k" })
 local shown = {}
@@ -169,7 +168,7 @@ local function Update(unit)
             -- The lead: how far the closest player (not a tank) is from taking the mob. Alone, or on a boss, no number.
             local nextPct = IsInGroup() and NextPercent(unit)
             local lead = nextPct and math.max(0, 100 - nextPct)
-            local state = (status == 2 or (lead and lead < LEAD)) and "risk" or "safe"
+            local state = (status == 2 or (lead and lead < (tonumber(ns.db.threatLead) or LEAD))) and "risk" or "safe"
             return Show(unit, plate, state, lead and ("+" .. Pct(lead)), true)
         end
         -- Alone there is nobody to lose the mob to: a pet holding it is fine.
@@ -191,9 +190,9 @@ local function Update(unit)
         return Show(unit, plate, "lost", YOU, true, "fast")
     end
     local pct = ns.db.threatPercent ~= false and Percent("player", unit)
-    local warn = tonumber(ns.db.threatWarn) or 70
+    local warn = tonumber(ns.db.threatWarn) or WARN
     if pct and pct >= warn then
-        local strong = pct >= STRONG
+        local strong = pct >= (tonumber(ns.db.threatStrong) or STRONG)
         return Show(unit, plate, "warn", Pct(pct), true, strong and "slow" or nil, not strong)
     end
     Hide(unit)

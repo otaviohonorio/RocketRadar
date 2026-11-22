@@ -288,8 +288,6 @@ L["Damage and healers: how much of the threat needed to take the mob you have. T
     "Бойцы и лекари: какая доля угрозы, нужной, чтобы противник повернулся к вам, у вас уже есть. Танк: сколько не хватает следующему игроку, чтобы отобрать его у вас."
 L["Warn from"] =
     "Предупреждать с"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
-    "Бойцы и лекари, в группе: щит становится жёлтым с этой доли угрозы, нужной, чтобы противник повернулся к вам, и мигает с 90%."
 L["Close to taking the mob"] =
     "Противник вот-вот повернётся к вам"
 L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
@@ -298,3 +296,13 @@ L["yellow: close to taking the mob, with how much you have"] =
     "жёлтый: противник вот-вот повернётся к вам, с вашей долей"
 L["yellow and blinking: from 90%, about to take it"] =
     "жёлтый мигающий: с 90%, вот-вот пойдёт на вас"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
+    "Бойцы и лекари, в группе: щит становится жёлтым с этой доли угрозы, нужной, чтобы противник повернулся к вам."
+L["Blink from"] =
+    "Мигать с"
+L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
+    "Бойцы и лекари, в группе: с этой доли жёлтый щит загорается и мигает. При 100 он никогда не мигает."
+L["Tank: warn below a lead of"] =
+    "Танк: предупреждать при отрыве меньше"
+L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
+    "Щит становится оранжевым, когда ближайший игрок (не танк) настолько близок к тому, чтобы отобрать у вас противника."

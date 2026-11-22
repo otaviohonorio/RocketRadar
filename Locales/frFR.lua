@@ -297,8 +297,6 @@ L["Damage and healers: how much of the threat needed to take the mob you have. T
     "Dégâts et soigneurs : la part de la menace nécessaire pour que l'ennemi se tourne vers vous que vous avez déjà. Tank : ce qu'il manque au joueur suivant pour vous le prendre."
 L["Warn from"] =
     "Avertir à partir de"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
-    "Dégâts et soigneurs, en groupe : le bouclier devient jaune à partir de cette part de la menace nécessaire pour que l'ennemi se tourne vers vous, et clignote à partir de 90%."
 L["Close to taking the mob"] =
     "L'ennemi va bientôt se tourner vers vous"
 L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
@@ -307,3 +305,13 @@ L["yellow: close to taking the mob, with how much you have"] =
     "jaune : l'ennemi va bientôt se tourner vers vous, avec votre part"
 L["yellow and blinking: from 90%, about to take it"] =
     "jaune et clignotant : dès 90%, sur le point de venir sur vous"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
+    "Dégâts et soigneurs, en groupe : le bouclier devient jaune à partir de cette part de la menace nécessaire pour que l'ennemi se tourne vers vous."
+L["Blink from"] =
+    "Clignoter à partir de"
+L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
+    "Dégâts et soigneurs, en groupe : à partir de cette part le bouclier jaune s'allume et clignote. À 100 il ne clignote jamais."
+L["Tank: warn below a lead of"] =
+    "Tank : avertir si l'avance est sous"
+L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
+    "Le bouclier devient orange quand le joueur le plus proche (qui n'est pas tank) est aussi près de vous prendre l'ennemi."

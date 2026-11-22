@@ -263,8 +263,6 @@ L["Damage and healers: how much of the threat needed to take the mob you have. T
     "傷害輸出和治療者：你已擁有讓敵人轉向你所需威脅的多少。坦克：下一位玩家距離從你身上奪走它還差多少。"
 L["Warn from"] =
     "警告起點"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob, and blinks from 90%."] =
-    "傷害輸出和治療者，組隊時：達到讓敵人轉向你所需威脅的這一比例時盾牌變黃，從90%開始閃爍。"
 L["Close to taking the mob"] =
     "敵人即將轉向你"
 L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
@@ -273,3 +271,13 @@ L["yellow: close to taking the mob, with how much you have"] =
     "黃色：敵人即將轉向你，附你已有的威脅"
 L["yellow and blinking: from 90%, about to take it"] =
     "黃色閃爍：從90%起，敵人即將轉向你"
+L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
+    "傷害輸出和治療者，組隊時：達到讓敵人轉向你所需威脅的這一比例時盾牌變黃。"
+L["Blink from"] =
+    "閃爍起點"
+L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
+    "傷害輸出和治療者，組隊時：從這一比例起黃色盾牌變亮並閃爍。設為100則從不閃爍。"
+L["Tank: warn below a lead of"] =
+    "坦克：領先低於此值時警告"
+L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
+    "當最接近的玩家（非坦克）離從你身上奪走敵人只差這麼多時，盾牌變為橙色。"

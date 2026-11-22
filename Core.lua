@@ -21,6 +21,8 @@ ns.defaults = {
     threatNames = true,
     threatPercent = true,    -- (22/11) the percentage beside the shield
     threatWarn = 70,         -- damage and healers: the yellow shield from this share of the threat needed to take the mob
+    threatStrong = 90,       -- damage and healers: from here the yellow shield is lit and blinks
+    threatLead = 20,         -- tank: orange when the closest player is within this of taking the mob
     -- the group (Party.lua, CastTarget.lua): the options window's Group section
     party = true,
     partySelf = true,
