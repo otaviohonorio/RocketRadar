@@ -79,7 +79,8 @@ end
 ---threat yet, or a secret value: a boss).
 local function Percent(who, unit)
     local tanking, _, scaled = UnitDetailedThreatSituation(who, unit)
-    if scaled == nil then return nil end
+    -- (23/11) a test showed no number and the diary had no line at all: "the game said nothing" is counted too
+    if scaled == nil then return ns.Log.Seen("threat.pct.none", who == "player" and "player" or "ally") end
     -- the log answers the in-game test: does the game hide the number on trash too, or only on bosses?
     local secret = issecretvalue(scaled)
     ns.Log.Seen("threat.pct.secret", secret)
