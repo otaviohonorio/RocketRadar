@@ -62,6 +62,9 @@ local function Holder(unit)
     for i = 1, last do
         local ally = prefix .. i
         local status = UnitThreatSituation(ally, unit)
+        -- (24/11) only the player's own read is proven open in instances (the log, M+ and raid included); a teammate's
+        -- is not yet: the names on the plates depend on it, so the log counts it too
+        ns.Log.Seen("threat.ally.secret", issecretvalue(status))
         if not issecretvalue(status) and status and status >= 2 then return ally end
     end
     if UnitExists("pet") then
