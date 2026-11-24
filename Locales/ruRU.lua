@@ -280,8 +280,6 @@ L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right
     "Слева: защитные и бурсты (светится = активно; темно с разверткой = восстанавливается). Справа: предстоящее применение | что снимаете вы | от босса."
 
 -- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
-L["Close to taking the mob"] =
-    "Противник вот-вот повернётся к вам"
 
 -- (24/11/2026) the threat without the percentage: only the states
 L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
@@ -292,3 +290,4 @@ L["yellow and blinking: you passed the tank's threat"] =
     "жёлтый мигающий: вы обогнали танка по угрозе"
 L["red: another player took it from the tank"] =
     "красный: другой игрок перехватил его у танка"
+L["You passed the tank's threat"] = "Вы обогнали танка по угрозе"

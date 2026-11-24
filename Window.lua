@@ -229,7 +229,7 @@ local function ThreatTab(f)
     local y2 = Section(f, r, top, rawget(_G, "COLOR") or L["Colour"])
     for _, st in ipairs({ { "safe", L["Safe with you"] }, { "risk", L["About to be lost"] },
                           { "lost", L["Loose (or turned to you)"] }, { "tank", L["With the other tank"] },
-                          { "warn", L["Close to taking the mob"] } }) do
+                          { "warn", L["You passed the tank's threat"] } }) do
         y2 = Color(f, r, y2, "threat." .. st[1], st[2], L["The shield's colour in this state. At first, the game's own."])
     end
     return math.min(y, y2)

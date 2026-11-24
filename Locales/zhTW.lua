@@ -255,8 +255,6 @@ L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right
     "左側：減傷技能和爆發（亮 = 生效；暗並旋轉 = 冷卻中）。右側：即將到來的施法 | 你可驅散的 | 首領的。"
 
 -- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
-L["Close to taking the mob"] =
-    "敵人即將轉向你"
 
 -- (24/11/2026) the threat without the percentage: only the states
 L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
@@ -267,3 +265,4 @@ L["yellow and blinking: you passed the tank's threat"] =
     "黃色閃爍：你的威脅值超過了坦克"
 L["red: another player took it from the tank"] =
     "紅色：其他玩家從坦克身上搶走了敵人"
+L["You passed the tank's threat"] = "你的威脅值超過了坦克"

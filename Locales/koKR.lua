@@ -266,8 +266,6 @@ L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right
     "왼쪽: 생존기와 폭딜 (밝음 = 활성, 어둡고 회전 = 재사용 대기 중). 오른쪽: 오는 시전 | 내가 무효화할 것 | 우두머리의 것."
 
 -- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
-L["Close to taking the mob"] =
-    "적이 곧 나를 노림"
 
 -- (24/11/2026) the threat without the percentage: only the states
 L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
@@ -278,3 +276,4 @@ L["yellow and blinking: you passed the tank's threat"] =
     "노랑 깜박임: 방어 전담의 위협 수준을 넘음"
 L["red: another player took it from the tank"] =
     "빨강: 다른 플레이어가 방어 전담에게서 가져감"
+L["You passed the tank's threat"] = "방어 전담의 위협 수준을 넘음"
