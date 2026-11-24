@@ -75,17 +75,33 @@ local function Holder(unit)
     end
 end
 
----How much of the threat needed to take `unit` that `who` has (0-100), or nil when the game does not say (no
----threat yet, or a secret value: a boss).
+---"boss", "trash" or "?" (the answer unreadable), for the log only.
+local function Kind(unit)
+    local ok, boss = pcall(UnitIsBossMob, unit)
+    if not ok or issecretvalue(boss) then return "?" end
+    return boss and "boss" or "trash"
+end
+
+---How much of the threat needed to take `unit` that `who` has (0-100), or nil when the game does not say (no threat
+---yet). The third value is true when the number is secret: it can be written (`Secret`), never compared.
+---(24/11) The Forever's log: 8059 reads in instances, every one secret, the trash included (the documentation's
+---"generally not secret" does not hold there); the same is expected in the retail's instances.
 local function Percent(who, unit)
     local tanking, _, scaled = UnitDetailedThreatSituation(who, unit)
     -- (23/11) a test showed no number and the diary had no line at all: "the game said nothing" is counted too
     if scaled == nil then return ns.Log.Seen("threat.pct.none", who == "player" and "player" or "ally") end
-    -- the log answers the in-game test: does the game hide the number on trash too, or only on bosses?
     local secret = issecretvalue(scaled)
-    ns.Log.Seen("threat.pct.secret", secret)
-    if secret then return nil end
+    ns.Log.Seen("threat.pct.secret", secret and Kind(unit) or false)
+    if secret then return scaled, nil, true end
     return scaled, tanking
+end
+
+---A secret percentage as text, rounded by the game without reading it (C_StringUtil, both clients:
+---SecretArguments AllowedWhenTainted), or nil when it can't.
+local function Secret(value)
+    if not (C_StringUtil and C_StringUtil.RoundToNearestString) then return nil end
+    local ok, text = pcall(C_StringUtil.RoundToNearestString, value)
+    return ok and text or nil
 end
 
 ---The highest percentage among the group's other members who are not tanks (a second tank close is the plan), or nil.
@@ -98,8 +114,8 @@ local function NextPercent(unit)
         local ally = prefix .. i
         -- the one holding the mob (the player themself, in a raid's list) is not "the next"
         if UnitGroupRolesAssigned(ally) ~= "TANK" then
-            local pct, tanking = Percent(ally, unit)
-            if pct and not issecretvalue(tanking) and tanking ~= true and (not best or pct > best) then best = pct end
+            local pct, tanking, hidden = Percent(ally, unit)
+            if pct and not hidden and not issecretvalue(tanking) and tanking ~= true and (not best or pct > best) then best = pct end
         end
     end
     return best
@@ -134,7 +150,11 @@ local function Show(unit, plate, state, label, number, blink, dim)
     token.icon:SetAlpha(dim and 0.45 or 1)
     local on
     if number then on = ns.db.threatPercent ~= false else on = ns.db.threatNames end
-    token.name:SetText(on and label or "")
+    if on and number and issecretvalue(label) then
+        token.name:SetFormattedText("%s%%", label)   -- a secret percentage: the game writes it (AllowedWhenTainted)
+    else
+        token.name:SetText(on and label or "")
+    end
     token.name:SetTextColor(r, g, b)
     if blink == "fast" then
         token.slow:Stop()
@@ -190,7 +210,15 @@ local function Update(unit)
     if status and status >= 2 then
         return Show(unit, plate, "lost", YOU, true, "fast")
     end
-    local pct = ns.db.threatPercent ~= false and Percent("player", unit)
+    local pct, _, hidden = Percent("player", unit)
+    if hidden then
+        -- (24/11, the user's choice) A secret number can't be held against 70/90: it shows only when the game itself
+        -- says the player passed the tank's threat and is about to take the mob (state 1), yellow and blinking.
+        ns.Log.Seen("threat.pct.hidden.status", status)
+        if status == 1 then return Show(unit, plate, "warn", Secret(pct) or "", true, "slow") end
+        return Hide(unit)
+    end
+    if ns.db.threatPercent == false then pct = nil end
     local warn = tonumber(ns.db.threatWarn) or WARN
     if pct and pct >= warn then
         local strong = pct >= (tonumber(ns.db.threatStrong) or STRONG)
