@@ -28,8 +28,6 @@ L["The game's own setting. Plates push each other apart, so two bars rarely cove
 L["This option cannot change in combat."] = "Этот параметр нельзя менять в бою."
 
 L["Show who holds each mob"] = "У кого какой противник"
-L["Tank: green is yours and safe, orange is yours about to be lost, red is loose, white is with another tank. Damage and healers: red when a mob turned to you."] =
-    "Танк: зелёный — надёжно у вас, оранжевый — у вас, но вот-вот уйдёт, красный — сорвался, белый — у другого танка. Бойцы и лекари: красный, когда противник повернулся к вам."
 L["Name who holds the mob"] = "Имя того, у кого противник"
 L["Beside the marker of a mob you do not hold, in the class colour."] =
     "Рядом с меткой противника, который не у вас, цветом класса."
@@ -281,28 +279,16 @@ L["red and blinking: loose, with who took it"] = "красный мигающи�
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "Слева: защитные и бурсты (светится = активно; темно с разверткой = восстанавливается). Справа: предстоящее применение | что снимаете вы | от босса."
 
--- (22/11/2026) the threat percentage beside the shield
-L["Show the percentage"] =
-    "Показывать процент"
-L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
-    "Бойцы и лекари: какая доля угрозы, нужной, чтобы противник повернулся к вам, у вас уже есть. Танк: сколько не хватает следующему игроку, чтобы отобрать его у вас."
-L["Warn from"] =
-    "Предупреждать с"
+-- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
 L["Close to taking the mob"] =
     "Противник вот-вот повернётся к вам"
-L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
-    "Щит появляется, когда противник вот-вот повернётся к вам (жёлтый, с процентом) и когда поворачивается (красный), в группе."
-L["yellow: close to taking the mob, with how much you have"] =
-    "жёлтый: противник вот-вот повернётся к вам, с вашей долей"
-L["yellow and blinking: from 90%, about to take it"] =
-    "жёлтый мигающий: с 90%, вот-вот пойдёт на вас"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
-    "Бойцы и лекари, в группе: щит становится жёлтым с этой доли угрозы, нужной, чтобы противник повернулся к вам."
-L["Blink from"] =
-    "Мигать с"
-L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
-    "Бойцы и лекари, в группе: с этой доли жёлтый щит загорается и мигает. При 100 он никогда не мигает."
-L["Tank: warn below a lead of"] =
-    "Танк: предупреждать при отрыве меньше"
-L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
-    "Щит становится оранжевым, когда ближайший игрок (не танк) настолько близок к тому, чтобы отобрать у вас противника."
+
+-- (24/11/2026) the threat without the percentage: only the states
+L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
+    "Танк: зелёный — надёжно у вас, оранжевый мигающий — у вас, но вот-вот уйдёт, красный — сорвался, белый — у другого танка. Бойцы и лекари, в группе: жёлтый, когда вы обогнали танка по угрозе, красный, когда противник повернулся к вам или к другому игроку."
+L["In a group, only the dangers: yellow and blinking when you passed the tank's threat; red when an enemy turned to you or when another player took it from the tank, with the name."] =
+    "В группе — только опасности: жёлтый мигающий, когда вы обогнали танка по угрозе; красный, когда противник повернулся к вам или другой игрок перехватил его у танка, с именем."
+L["yellow and blinking: you passed the tank's threat"] =
+    "жёлтый мигающий: вы обогнали танка по угрозе"
+L["red: another player took it from the tank"] =
+    "красный: другой игрок перехватил его у танка"

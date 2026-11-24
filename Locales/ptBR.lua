@@ -25,8 +25,6 @@ L["The game's own setting. Plates push each other apart, so two bars rarely cove
 L["This option cannot change in combat."] = "Esta opção não pode ser mudada em combate."
 
 L["Show who holds each mob"] = "Com quem está cada inimigo"
-L["Tank: green is yours and safe, orange is yours about to be lost, red is loose, white is with another tank. Damage and healers: red when a mob turned to you."] =
-    "Tanque: verde está seguro com você, laranja está com você por pouco, vermelho está solto e branco está com outro tanque. Dano e cura: vermelho quando um inimigo se voltou para você."
 L["Name who holds the mob"] = "Nome de quem está com ele"
 L["Beside the marker of a mob you do not hold, in the class colour."] =
     "Ao lado da marca do inimigo que não está com você, na cor da classe."
@@ -283,28 +281,16 @@ L["red and blinking: loose, with who took it"] = "vermelho piscando: solto, com 
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "À esquerda: defensivos e bursts (aceso = ativo; escuro com giro = em recarga). À direita: a conjuração que vem | o que você remove | a do chefe."
 
--- (22/11/2026) the threat percentage beside the shield
-L["Show the percentage"] =
-    "Mostrar a porcentagem"
-L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
-    "Dano e cura: quanto você já tem da ameaça necessária para o inimigo vir para você. Tanque: quanto falta para o próximo jogador tirá-lo de você."
-L["Warn from"] =
-    "Avisar a partir de"
+-- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
 L["Close to taking the mob"] =
     "Perto de o inimigo vir para você"
-L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
-    "O escudo aparece quando um inimigo está perto de vir para você (amarelo, com a porcentagem) e quando vem (vermelho), em grupo."
-L["yellow: close to taking the mob, with how much you have"] =
-    "amarelo: perto de o inimigo vir para você, com quanto você já tem"
-L["yellow and blinking: from 90%, about to take it"] =
-    "amarelo piscando: a partir de 90%, prestes a vir para você"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
-    "Dano e cura, em grupo: o escudo fica amarelo a partir desta parte da ameaça necessária para o inimigo vir para você."
-L["Blink from"] =
-    "Piscar a partir de"
-L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
-    "Dano e cura, em grupo: a partir desta parte o escudo amarelo acende e pisca. Em 100 ele nunca pisca."
-L["Tank: warn below a lead of"] =
-    "Tanque: avisar com folga menor que"
-L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
-    "O escudo fica laranja quando o jogador mais perto (que não é tanque) está a esta distância de tirar o inimigo de você."
+
+-- (24/11/2026) the threat without the percentage: only the states
+L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
+    "Tanque: verde está seguro com você, laranja piscando está com você por pouco, vermelho está solto e branco está com outro tanque. Dano e cura, em grupo: amarelo quando você passou a ameaça do tanque, vermelho quando um inimigo se voltou para você ou para outro jogador."
+L["In a group, only the dangers: yellow and blinking when you passed the tank's threat; red when an enemy turned to you or when another player took it from the tank, with the name."] =
+    "Em grupo, só os perigos: amarelo piscando quando você passou a ameaça do tanque; vermelho quando um inimigo se voltou para você ou quando outro jogador o tirou do tanque, com o nome."
+L["yellow and blinking: you passed the tank's threat"] =
+    "amarelo piscando: você passou a ameaça do tanque"
+L["red: another player took it from the tank"] =
+    "vermelho: outro jogador tirou o inimigo do tanque"

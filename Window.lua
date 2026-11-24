@@ -167,7 +167,7 @@ local function GeneralTab(f)
         GameTooltip_AddNormalLine(GameTooltip, L["The shield beside every enemy plate says who holds it: green, safe with you; orange, about to be lost; red and blinking, loose, with the name of who took it; white, with the other tank."], true)
         GameTooltip_AddBlankLineToTooltip(GameTooltip)
         GameTooltip_AddHighlightLine(GameTooltip, L["Damage or healer"])
-        GameTooltip_AddNormalLine(GameTooltip, L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."], true)
+        GameTooltip_AddNormalLine(GameTooltip, L["In a group, only the dangers: yellow and blinking when you passed the tank's threat; red when an enemy turned to you or when another player took it from the tank, with the name."], true)
         GameTooltip:Show()
     end)
     help:SetScript("OnLeave", GameTooltip_Hide)
@@ -219,24 +219,10 @@ local function ThreatTab(f)
     local c = Left()
     local y = Section(f, c, top, L["Threat"])
     y = Check(f, c, y, "threat", L["Show who holds each mob"],
-        L["Tank: green is yours and safe, orange is yours about to be lost, red is loose, white is with another tank. Damage and healers: red when a mob turned to you."],
+        L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."],
         refresh)
     y = Check(f, c, y, "threatNames", L["Name who holds the mob"],
         L["Beside the marker of a mob you do not hold, in the class colour."], refresh)
-    -- (22/11) the percentage beside the shield (the user approved the preview's frames 1 and 2)
-    y = Check(f, c, y, "threatPercent", L["Show the percentage"],
-        L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."],
-        refresh, true)
-    y = Slider(f, c, y, "threatWarn", L["Warn from"],
-        L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."],
-        50, 90, 5, 70, refresh)
-    -- (22/11) the user: "coloca os valores por padrão, mas deixa configurável"
-    y = Slider(f, c, y, "threatStrong", L["Blink from"],
-        L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."],
-        75, 100, 5, 90, refresh)
-    y = Slider(f, c, y, "threatLead", L["Tank: warn below a lead of"],
-        L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."],
-        5, 50, 5, 20, refresh)
     -- (04/11) the colour of each state (the user: "na ameaça, se virar aba, pode ter a paleta de cores para editar a
     -- cor dos estagios"); the game's colours at first, a right click goes back to them
     local r = Right()

@@ -28,8 +28,6 @@ L["The game's own setting. Plates push each other apart, so two bars rarely cove
 L["This option cannot change in combat."] = "이 설정은 전투 중에 바꿀 수 없습니다."
 
 L["Show who holds each mob"] = "각 적을 누가 잡고 있는지 표시"
-L["Tank: green is yours and safe, orange is yours about to be lost, red is loose, white is with another tank. Damage and healers: red when a mob turned to you."] =
-    "방어 전담: 초록은 내가 안전하게, 주황은 내가 곧 놓침, 빨강은 풀림, 흰색은 다른 방어 전담. 공격·치유 전담: 적이 나를 노리면 빨강."
 L["Name who holds the mob"] = "잡고 있는 사람 이름"
 L["Beside the marker of a mob you do not hold, in the class colour."] = "내가 잡고 있지 않은 적의 표시 옆에, 직업 색상으로."
 
@@ -267,28 +265,16 @@ L["red and blinking: loose, with who took it"] = "빨강 깜빡임: 풀림, 가�
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "왼쪽: 생존기와 폭딜 (밝음 = 활성, 어둡고 회전 = 재사용 대기 중). 오른쪽: 오는 시전 | 내가 무효화할 것 | 우두머리의 것."
 
--- (22/11/2026) the threat percentage beside the shield
-L["Show the percentage"] =
-    "백분율 표시"
-L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
-    "공격 및 치유 전담: 적이 나를 노리게 되는 데 필요한 위협 중 내가 가진 양. 방어 전담: 다음 플레이어가 적을 가져가기까지 남은 양."
-L["Warn from"] =
-    "경고 시작"
+-- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
 L["Close to taking the mob"] =
     "적이 곧 나를 노림"
-L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
-    "방패는 적이 곧 나를 노리게 될 때 (노랑, 백분율과 함께)와 실제로 노릴 때 (빨강) 나타납니다 (파티 중)."
-L["yellow: close to taking the mob, with how much you have"] =
-    "노랑: 적이 곧 나를 노림, 내가 가진 위협과 함께"
-L["yellow and blinking: from 90%, about to take it"] =
-    "노랑 깜박임: 90%부터, 곧 나에게 옴"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
-    "공격 및 치유 전담, 파티 중: 적이 나를 노리게 되는 데 필요한 위협이 이 비율에 이르면 방패가 노랑이 됩니다."
-L["Blink from"] =
-    "깜박임 시작"
-L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
-    "공격 및 치유 전담, 파티 중: 이 비율부터 노란 방패가 밝아지고 깜박입니다. 100이면 깜박이지 않습니다."
-L["Tank: warn below a lead of"] =
-    "방어 전담: 여유가 이보다 적으면 경고"
-L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
-    "가장 가까운 플레이어(방어 전담 제외)가 이만큼 가까이 와서 적을 가져가려 하면 방패가 주황이 됩니다."
+
+-- (24/11/2026) the threat without the percentage: only the states
+L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
+    "방어 전담: 초록은 내가 안전하게, 주황 깜박임은 내가 곧 놓침, 빨강은 풀림, 흰색은 다른 방어 전담. 공격·치유 전담, 파티에서: 방어 전담의 위협 수준을 넘으면 노랑, 적이 나나 다른 플레이어를 노리면 빨강."
+L["In a group, only the dangers: yellow and blinking when you passed the tank's threat; red when an enemy turned to you or when another player took it from the tank, with the name."] =
+    "파티에서는 위험만: 방어 전담의 위협 수준을 넘으면 노랑 깜박임, 적이 나를 노리거나 다른 플레이어가 방어 전담에게서 가져가면 이름과 함께 빨강."
+L["yellow and blinking: you passed the tank's threat"] =
+    "노랑 깜박임: 방어 전담의 위협 수준을 넘음"
+L["red: another player took it from the tank"] =
+    "빨강: 다른 플레이어가 방어 전담에게서 가져감"

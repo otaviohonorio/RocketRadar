@@ -262,7 +262,7 @@ local function CastBar(bar, cast)
     return cb
 end
 
-local function Plate(parent, x, y, name, castKey, threat, cast, holder, dim)
+local function Plate(parent, x, y, name, castKey, threat, cast, holder)
     local bar = CreateFrame("Frame", nil, parent)
     bar:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y - 12)
     bar:SetSize(150, 12)
@@ -293,7 +293,6 @@ local function Plate(parent, x, y, name, castKey, threat, cast, holder, dim)
         s:SetAtlas("ui-lfg-roleicon-tank-micro-groupfinder")
         s:SetDesaturated(true)
         s:SetVertexColor(ns.ColorOf("threat." .. threat))
-        if dim then s:SetAlpha(0.45) end
         if holder then
             -- (22/11) the text beside the shield in the state's colour, as on the plates (a name keeps its class colour)
             local hn = Text(parent, "GameFontHighlightSmallOutline", holder)
@@ -405,8 +404,8 @@ function Ex.Threat(parent, x, y, w)
     local dk = C_ClassColor.GetClassColor("DEATHKNIGHT")
     local morgrath = dk and dk:WrapTextInColorCode("Morgrath") or "Morgrath"
     local rows = {
-        { "safe", "+65%", L["green: the mob is with you and safe"] },
-        { "risk", "+6%", L["orange: with you, about to be lost"] },
+        { "safe", nil, L["green: the mob is with you and safe"] },
+        { "risk", nil, L["orange: with you, about to be lost"] },
         { "lost", morgrath, L["red and blinking: loose, with the name of who took it"] },
         { "tank", "Thoren", L["white: with the other tank"] },
     }
@@ -417,12 +416,12 @@ function Ex.Threat(parent, x, y, w)
     local t2 = Text(box, "GameFontNormal", L["Playing damage or healer (in a group)"])
     t2:SetPoint("TOPLEFT", box, "TOPLEFT", 12, -188)
     local dps = {
-        { "warn", "72%", L["yellow: close to taking the mob, with how much you have"], true },
-        { "warn", "94%", L["yellow and blinking: from 90%, about to take it"] },
+        { "warn", nil, L["yellow and blinking: you passed the tank's threat"] },
         { "lost", YOU, L["red: the mob turned to you"] },
+        { "lost", morgrath, L["red: another player took it from the tank"] },
     }
     for i, r in ipairs(dps) do   -- 12 between the title and the first plate's name
-        local p = Plate(box, 130, -216 - (i - 1) * ROW, L["Mob"], nil, r[1], nil, r[2], r[4])
+        local p = Plate(box, 130, -216 - (i - 1) * ROW, L["Mob"], nil, r[1], nil, r[2])
         Caption(box, p, r[3])
     end
     return h + 10

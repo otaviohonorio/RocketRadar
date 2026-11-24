@@ -19,10 +19,6 @@ ns.defaults = {
     kickFilter = "all",  -- all / important
     threat = true,
     threatNames = true,
-    threatPercent = true,    -- (22/11) the percentage beside the shield
-    threatWarn = 70,         -- damage and healers: the yellow shield from this share of the threat needed to take the mob
-    threatStrong = 90,       -- damage and healers: from here the yellow shield is lit and blinks
-    threatLead = 20,         -- tank: orange when the closest player is within this of taking the mob
     -- the group (Party.lua, CastTarget.lua): the options window's Group section
     party = true,
     partySelf = true,
@@ -64,7 +60,7 @@ ns.GAME_COLOR = {
 }
 -- (04/11) the threat shield's colour of each state, a colour object of the game (the Threat tab lets each one change)
 ns.THREAT_DEFAULT = { safe = "GREEN_FONT_COLOR", risk = "ORANGE_FONT_COLOR", lost = "RED_FONT_COLOR", tank = "HIGHLIGHT_FONT_COLOR",
-    warn = "YELLOW_FONT_COLOR" }   -- (22/11) close to taking the mob
+    warn = "YELLOW_FONT_COLOR" }   -- (24/11) the player passed the tank's threat (the game's state 1)
 -- The dispel types, in the order the game lists them (AuraUtil, DEBUFF_DISPLAY_INFO).
 ns.DISPEL_TYPES = { "Magic", "Curse", "Disease", "Poison", "Bleed" }
 
@@ -216,6 +212,8 @@ ns.On("ADDON_LOADED", function(addon)
         if RocketRadarDB[k] == nil then RocketRadarDB[k] = v end
     end
     ns.db = RocketRadarDB
+    -- (24/11) the threat percentage left (the game hides the number in instances): its options go with it
+    ns.db.threatPercent, ns.db.threatWarn, ns.db.threatStrong, ns.db.threatLead = nil, nil, nil, nil
     -- (04/11) schema 2: everything shows by default; a saved "mine" from the first default goes to "all" once
     if (tonumber(ns.db.schema) or 1) < 2 then
         ns.db.dispelMode = "all"

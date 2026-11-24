@@ -27,8 +27,6 @@ L["The game's own setting. Plates push each other apart, so two bars rarely cove
 L["This option cannot change in combat."] = "戰鬥中無法變更此選項。"
 
 L["Show who holds each mob"] = "顯示每個敵人在誰身上"
-L["Tank: green is yours and safe, orange is yours about to be lost, red is loose, white is with another tank. Damage and healers: red when a mob turned to you."] =
-    "坦克：綠色為穩定在你身上，橘色為在你身上但即將失去，紅色為已脫離，白色為在另一名坦克身上。傷害輸出和治療者：敵人轉向你時為紅色。"
 L["Name who holds the mob"] = "顯示持有者的名字"
 L["Beside the marker of a mob you do not hold, in the class colour."] = "顯示在不在你身上的敵人標記旁，使用職業顏色。"
 
@@ -256,28 +254,16 @@ L["red and blinking: loose, with who took it"] = "紅色閃爍：已脫離，顯
 L["Left: defensives and bursts (lit = on; dark with a sweep = recharging). Right: the cast coming | what you remove | the boss's."] =
     "左側：減傷技能和爆發（亮 = 生效；暗並旋轉 = 冷卻中）。右側：即將到來的施法 | 你可驅散的 | 首領的。"
 
--- (22/11/2026) the threat percentage beside the shield
-L["Show the percentage"] =
-    "顯示百分比"
-L["Damage and healers: how much of the threat needed to take the mob you have. Tank: how far the next player is from taking it."] =
-    "傷害輸出和治療者：你已擁有讓敵人轉向你所需威脅的多少。坦克：下一位玩家距離從你身上奪走它還差多少。"
-L["Warn from"] =
-    "警告起點"
+-- (22/11/2026) the yellow state's colour (24/11: the player passed the tank's threat)
 L["Close to taking the mob"] =
     "敵人即將轉向你"
-L["The shield shows when an enemy is close to turning to you (yellow, with the percentage) and when it turns (red), in a group."] =
-    "當敵人即將轉向你時（黃色，附百分比）和轉向你時（紅色），盾牌會顯示（組隊時）。"
-L["yellow: close to taking the mob, with how much you have"] =
-    "黃色：敵人即將轉向你，附你已有的威脅"
-L["yellow and blinking: from 90%, about to take it"] =
-    "黃色閃爍：從90%起，敵人即將轉向你"
-L["Damage and healers, in a group: the shield turns yellow from this share of the threat needed to take the mob."] =
-    "傷害輸出和治療者，組隊時：達到讓敵人轉向你所需威脅的這一比例時盾牌變黃。"
-L["Blink from"] =
-    "閃爍起點"
-L["Damage and healers, in a group: from this share the yellow shield lights up and blinks. At 100 it never blinks."] =
-    "傷害輸出和治療者，組隊時：從這一比例起黃色盾牌變亮並閃爍。設為100則從不閃爍。"
-L["Tank: warn below a lead of"] =
-    "坦克：領先低於此值時警告"
-L["The shield turns orange when the closest player (not a tank) is this close to taking the mob from you."] =
-    "當最接近的玩家（非坦克）離從你身上奪走敵人只差這麼多時，盾牌變為橙色。"
+
+-- (24/11/2026) the threat without the percentage: only the states
+L["Tank: green is yours and safe, orange and blinking is yours about to be lost, red is loose, white is with another tank. Damage and healers, in a group: yellow when you passed the tank's threat, red when a mob turned to you or to another player."] =
+    "坦克：綠色為穩定在你身上，橘色閃爍為在你身上但即將失去，紅色為已脫離，白色為在另一名坦克身上。傷害輸出和治療者，在隊伍中：你的威脅值超過坦克時為黃色，敵人轉向你或其他玩家時為紅色。"
+L["In a group, only the dangers: yellow and blinking when you passed the tank's threat; red when an enemy turned to you or when another player took it from the tank, with the name."] =
+    "在隊伍中只顯示危險：你的威脅值超過坦克時黃色閃爍；敵人轉向你或其他玩家從坦克身上搶走時為紅色，並顯示名字。"
+L["yellow and blinking: you passed the tank's threat"] =
+    "黃色閃爍：你的威脅值超過了坦克"
+L["red: another player took it from the tank"] =
+    "紅色：其他玩家從坦克身上搶走了敵人"
